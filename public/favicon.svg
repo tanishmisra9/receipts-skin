@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+  <style>
+    path.ink { stroke: #1d1a16; }
+    path.check { stroke: #1f7a4d; }
+    @media (prefers-color-scheme: dark) { path.ink { stroke: #f1ece1; } path.check { stroke: #8fd6a9; } }
+  </style>
+  <path class="ink" d="M7 3h18v26l-3-2.2-3 2.2-3-2.2-3 2.2-3-2.2L7 29V3Z"/>
+  <path class="check" d="m12 14 3 3 5-6"/>
+</svg>

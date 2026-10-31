@@ -1,0 +1,14 @@
+[
+  { "id": "clay-mask", "brand": "Plain Lab", "name": "Pore Refine Clay Mask", "claim": "Visibly minimizes the look of pores.", "targets": ["pore"] },
+  { "id": "gel-cream", "brand": "Plain Lab", "name": "Hydra-Lock Gel Cream", "claim": "Deep hydration that lasts all day.", "targets": ["moisture"] },
+  { "id": "vit-c", "brand": "Plain Lab", "name": "Vitamin C Glow Serum", "claim": "Fades dark spots and boosts glow.", "targets": ["age_spot", "radiance"] },
+  { "id": "calm", "brand": "Plain Lab", "name": "Calm Barrier Cream", "claim": "Soothes visible redness and irritation.", "targets": ["redness"] },
+  { "id": "blemish", "brand": "Plain Lab", "name": "Clear Zone Blemish Gel", "claim": "Targets breakouts and blemishes.", "targets": ["acne"] },
+  { "id": "retinol", "brand": "Plain Lab", "name": "Night Renewal Retinol", "claim": "Softens fine lines and wrinkles.", "targets": ["wrinkle", "texture"] },
+  { "id": "peptide", "brand": "Plain Lab", "name": "Peptide Firming Cream", "claim": "Firms and lifts the look of skin.", "targets": ["firmness"] },
+  { "id": "eye-roll", "brand": "Plain Lab", "name": "Eye Revive Roll-On", "claim": "De-puffs under-eye bags.", "targets": ["eye_bag"] },
+  { "id": "eye-dark", "brand": "Plain Lab", "name": "Bright Eyes Cream", "claim": "Brightens dark circles.", "targets": ["dark_circle_v2"] },
+  { "id": "toner", "brand": "Plain Lab", "name": "Matte Balance Toner", "claim": "Controls shine and excess oil.", "targets": ["oiliness"] },
+  { "id": "aha", "brand": "Plain Lab", "name": "Resurface AHA Exfoliant", "claim": "Smoother, refined skin texture.", "targets": ["texture"] },
+  { "id": "glow-drops", "brand": "Plain Lab", "name": "Luminous Glow Drops", "claim": "Revives dull, tired-looking skin.", "targets": ["radiance"] }
+]

@@ -1,0 +1,14 @@
+{
+  "pore": {
+    "file": "sim/pore.jpg",
+    "intensity": 0.8
+  },
+  "dark_circle_v2": {
+    "file": "sim/dark_circle_v2.jpg",
+    "intensity": 0.8
+  },
+  "oiliness": {
+    "file": "sim/oiliness.jpg",
+    "intensity": 0.8
+  }
+}

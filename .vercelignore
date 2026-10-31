@@ -1,0 +1,8 @@
+public/personas/local
+**/raw.json
+.env*
+personas-src
+stock-src
+scripts
+test
+NOTES.md

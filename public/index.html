@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Receipts: skin analysis that can say no</title>
+<meta name="description" content="Get a Match, Partial or Skip on every skincare product, backed by your own measured skin scores.">
+<meta name="theme-color" content="#faf6ea">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<script>
+  // Pre-paint: apply the saved theme (else the system one) before first paint, so there is no flash.
+  (function () {
+    try {
+      var t = localStorage.getItem('theme');
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+      var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'dark' ? '#171310' : '#faf6ea';
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="#top" id="logo" aria-label="Receipts home"></a>
+    <nav class="nav-links kicker" aria-label="Primary"><a href="#howTitle">How it works</a><a href="#shelf">Shelf</a></nav>
+    <div class="actions">
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
+      <button class="btn btn-primary" id="scanBtn" type="button"><span id="iconCam"></span><span class="label-long">Scan my face</span><span class="label-short">Scan</span></button>
+      <input id="file" type="file" accept="image/*" hidden>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1" style="outline:none">
+  <div class="wrap">
+    <section class="hero" id="top">
+      <p class="kicker">Skin analysis, with receipts</p>
+      <h1>Skincare advice that's allowed to say no.</h1>
+      <p class="lede">One selfie, measured once. Every product on the shelf gets a Match, Partial or Skip, with your own scores as the receipt.</p>
+
+    </section>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <div class="layout" id="app" hidden>
+      <aside class="col-left" aria-label="Your face">
+        <div class="faces" id="faces" role="group" aria-label="Choose a face"></div>
+        <div class="photo" id="photo">
+          <img id="photoImg" alt="Face being analyzed">
+          <img class="mask" id="maskImg" alt="" hidden>
+          <img class="sim" id="simImg" alt="Predicted result after treatment" hidden>
+          <span class="cmp-line" id="cmpLine" hidden></span>
+          <input class="cmp" id="cmp" type="range" min="0" max="100" value="50" aria-label="Drag to compare before and after" hidden>
+          <div class="tag" id="tag" hidden></div>
+        </div>
+        <div class="view-toggle" id="viewToggle" role="group" aria-label="Photo view" hidden>
+          <button type="button" class="chip" data-v="measured" aria-pressed="true">Measured</button>
+          <button type="button" class="chip" data-v="preview" aria-pressed="false">Preview</button>
+        </div>
+        <p class="meta" id="meta"></p>
+        <div id="receiptInline" aria-live="polite"></div>
+      </aside>
+
+      <section id="shelf" aria-label="Product shelf">
+        <div class="panel">
+          <h2>Your measured skin</h2>
+          <p class="sub">Raw YouCam scores, 1 to 100, higher is healthier. Tap a row to see where it was measured.</p>
+          <div class="bars" id="bars"></div>
+        </div>
+
+        <div class="summary">
+          <h2 class="headline" id="headline"></h2>
+          <div class="filters" id="filters" role="group" aria-label="Filter products"></div>
+        </div>
+        <div class="shelf" id="shelfGrid"></div>
+
+        <div class="panel" style="margin-top:20px">
+          <h2>Got a product in mind?</h2>
+          <p class="sub">Paste what the label claims, for example "fades dark spots and boosts glow".</p>
+          <form class="claimbox" id="claimForm"><input id="claim" type="text" maxlength="200" placeholder="Paste a product claim" aria-label="Product claim"><button class="btn" type="submit">Check it</button></form>
+        </div>
+
+        <details>
+          <summary>How verdicts are decided</summary>
+          <p style="margin-top:8px">No AI opinion. Each product targets one or more skin concerns. We take the weakest targeted concern from your scan: below 65 is a <b>Match</b>, 65 to 79 is <b>Partial</b>, 80 or more is a <b>Skip</b>. Hydration uses 50 and 65 because the scanner reads it lower on everyone we tried. These cut-offs are our own heuristic from five faces, not clinical thresholds.</p>
+        </details>
+      </section>
+    </div>
+
+    <section class="how" aria-labelledby="howTitle">
+      <h2 id="howTitle" class="kicker">How it works</h2>
+      <ol class="steps">
+        <li><p class="kicker">01 Scan</p><span>One selfie, measured by YouCam Skin Analysis.</span></li>
+        <li><p class="kicker">02 Measure</p><span>Twelve concerns, scored 1 to 100, with a mask.</span></li>
+        <li><p class="kicker">03 Verdict</p><span>Plain arithmetic on your scores. No AI opinion.</span></li>
+      </ol>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Cosmetic guidance only, not medical advice. Product names are fictional.</span>
+    <span>Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people.</span>
+    <span>If you scan your own face, your photo is sent to the YouCam API for analysis. This site stores nothing, and YouCam deletes uploads after 24 hours.</span>
+    <span>Built with the YouCam Skin Analysis API.</span>
+  </div>
+</footer>
+
+<!-- Mobile receipt sheet. Sibling of <main> on purpose: inert on <main> must not disable it. -->
+<div class="backdrop" id="backdrop"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Receipt" tabindex="-1">
+  <div class="grab" aria-hidden="true"></div>
+  <button class="icon-btn close" id="sheetClose" type="button" aria-label="Close receipt"></button>
+  <div id="sheetBody"></div>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

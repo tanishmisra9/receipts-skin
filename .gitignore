@@ -1,0 +1,10 @@
+.env
+.env.local
+node_modules
+personas-src/
+stock-src/
+.vercel
+public/personas/local/
+**/raw.json
+NOTES.md
+.DS_Store

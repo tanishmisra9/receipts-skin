@@ -1,0 +1,10 @@
+{
+  "pore": {
+    "file": "sim/pore.jpg",
+    "intensity": 0.8
+  },
+  "eye_bag": {
+    "file": "sim/eye_bag.jpg",
+    "intensity": 0.8
+  }
+}
