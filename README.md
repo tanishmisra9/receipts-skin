@@ -25,7 +25,7 @@ The receipt is the product: the stamp, the line items and the mask on the face s
 | Skin Simulation v2 (`/s2s/v2.0/task/skin-simulation`) | Predicted before/after preview, saved per sample face | 4 units per preview |
 
 Notes from building against it:
-- `ui_score` is calibrated to flatter ("adjusted to produce more favorable results", per the docs). Verdicts use `raw_score`.
+- `ui_score` is calibrated to flatter ("adjusted to produce more favorable results", per the docs). Verdicts use `raw_score`. Measured on our three sample faces, scoring with `ui_score` instead would change 8 of 36 verdicts.
 - Hydration reads 52 to 62 on all five faces we scanned, which would give everyone a hydration "Match". It has its own cut-offs (50 and 65). These cut-offs are heuristics from five faces, not clinical thresholds.
 - A failed scan (bad angle, glare) costs nothing; units are charged only on success.
 
@@ -41,6 +41,7 @@ Notes from building against it:
 
 ```bash
 npm test                      # 9 tests, no dependencies
+npm run recheck               # independent Python re-derivation of all 36 verdicts; must match the app exactly
 python3 -m http.server 8080 --directory public   # sample faces work with no API key
 node scripts/contrast.mjs     # WCAG contrast check for both themes
 ```
@@ -67,6 +68,11 @@ If you scan your own face, the photo goes to the YouCam API for analysis. This s
 ## Credits
 
 Sample face photos from Unsplash: Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Product names are fictional. Design cues from the author's Telogify and Portfolio projects.
+
+## Evidence
+
+- `npm test`: planted-score tests (one weak concern matches only its product, perfect skin skips everything, missing scores are Unclear) plus real-scan checks. We also broke the comparison on purpose to confirm the tests go red.
+- `npm run recheck`: a separate Python implementation, written from the rules above, recomputes every face x product verdict and compares it with the app's JavaScript output. Result: 36 of 36 agree; the three faces get three different shelves (Match/Partial/Skip counts of 0/1/11, 1/3/8 and 2/2/8).
 
 ## Limits
 

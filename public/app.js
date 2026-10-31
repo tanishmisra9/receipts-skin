@@ -59,20 +59,35 @@ function renderView() {
   const sim = selConcern && current.sim?.[selConcern];
   if (!sim && view === 'preview') view = 'measured';
   const preview = view === 'preview';
+  const entering = preview && $('simImg').hidden;
   $('viewToggle').hidden = !sim;
   $('viewToggle').querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === view)));
   ['simImg', 'cmp', 'cmpLine'].forEach((id) => { $(id).hidden = !preview; });
   if (preview) {
     $('simImg').src = sim;
-    $('cmp').value = 50; $('photo').style.setProperty('--pos', '50%');
+    if (entering) sweepIn(); // slide in from the far edge so the change is impossible to miss
     $('maskImg').classList.remove('on'); $('photo').classList.remove('hasmask');
     $('tag').textContent = 'Before | predicted after, not a promise'; $('tag').hidden = false;
     document.querySelectorAll('.bar-row').forEach((b) => b.setAttribute('aria-pressed', 'false'));
   } else if (lastMask) drawMask(lastMask.concern, lastMask.text);
 }
+function sweepIn() {
+  const ph = $('photo');
+  ph.classList.remove('sweep'); ph.style.setProperty('--pos', '100%'); $('cmp').value = 100;
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    ph.classList.add('sweep'); ph.style.setProperty('--pos', '50%'); $('cmp').value = 50;
+    setTimeout(() => ph.classList.remove('sweep'), 1000);
+  }));
+}
 $('cmp').addEventListener('input', (e) => $('photo').style.setProperty('--pos', `${e.target.value}%`));
 $('viewToggle').querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { view = b.dataset.v; renderView(); }));
-function showPreview() { view = 'preview'; renderView(); if (mq.matches) { closeSheet(); $('photo').scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); } }
+function showPreview() {
+  view = 'preview';
+  if (mq.matches) closeSheet();
+  renderView();
+  const r = $('photo').getBoundingClientRect(), top = document.querySelector('.site-header').offsetHeight;
+  if (r.top < top || r.bottom > innerHeight) $('photo').scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+}
 ['receiptInline', 'sheetBody'].forEach((id) => $(id).addEventListener('click', (e) => { if (e.target.closest('[data-act="preview"]')) showPreview(); }));
 
 // ---------- measured-skin bars ----------
@@ -115,12 +130,12 @@ function receiptHTML(p, title) {
   const thumb = mask ? `<div class="thumb"><img src="${esc(photoSrc)}" alt=""><img src="${esc(mask)}" alt="Where ${LABEL[e0.concern]} was measured"></div>` : '';
   const rank = e0 ? `Your #${e0.rank} weakest of ${e0.of} shoppable concerns. ` : '';
   const hasSim = e0 && current.sim?.[e0.concern];
-  const previewNote = hasSim ? `<div class="preview-note"><span>A predicted result is available. It is a preview, not a promise.</span><button class="btn" type="button" data-act="preview">See it</button></div>` : '';
+  const previewNote = hasSim ? `<div class="preview-note"><button class="btn" type="button" data-act="preview">See predicted result</button><span>A preview, not a promise.</span></div>` : '';
   return `<article class="receipt">${thumb}
     <div class="top kicker"><span>Receipt</span><span>${esc(current.label)}</span></div>
     <div class="stamp b-${v.verdict}">${icon(VICON[v.verdict], 20)}${VERDICT[v.verdict]}</div>
-    <h3>${esc(title ?? p.name)}</h3><p class="reason">${esc(v.reason)}</p>
-    <dl>${lines}</dl><p class="foot">${rank}Raw YouCam score, higher is healthier.</p>${previewNote}</article>`;
+    <h3>${esc(title ?? p.name)}</h3><p class="reason">${esc(v.reason)}</p>${previewNote}
+    <dl>${lines}</dl><p class="foot">${rank}Raw YouCam score, higher is healthier.</p></article>`;
 }
 
 function select(p, title, trigger, { open = true } = {}) {
