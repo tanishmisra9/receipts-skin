@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How Receipts works: the rules, the APIs and the limits</title>
+<meta name="description" content="How a Match, Partial or Skip is decided, what the YouCam APIs do, what happens to your photo, and what this is not.">
+<meta name="theme-color" content="#faf6ea">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script>
+  // Pre-paint: apply the saved theme (else the system one) before first paint, so there is no flash.
+  (function () {
+    try {
+      var t = localStorage.getItem('theme');
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+      var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'dark' ? '#171310' : '#faf6ea';
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!--site-header-->
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
+    <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a></nav>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
+  </div>
+</header>
+<!--/site-header-->
+
+<main id="main" tabindex="-1" style="outline:none">
+  <div class="wrap">
+    <article class="doc">
+      <header>
+        <p class="kicker">How it works</p>
+        <h1>The rules, in plain sight.</h1>
+        <p class="lede">What decides a Match, Partial or Skip, what the YouCam APIs do, what happens to your photo, and what this is not.</p>
+        <nav class="toc" aria-label="On this page">
+          <a href="#idea">The idea</a><a href="#flow">The flow</a><a href="#verdicts">How a verdict is decided</a><a href="#youcam">What YouCam does</a><a href="#photo">Your photo</a><a href="#limits">What this is not</a>
+        </nav>
+      </header>
+
+      <section id="idea" aria-labelledby="h-idea">
+        <h2 id="h-idea">The idea</h2>
+        <p>Most beauty recommenders earn when you buy, so their answer is almost always yes. Receipts is built the other way around. It is allowed to say Skip, and it shows the measurement behind every verdict, so you can check the reasoning instead of trusting it.</p>
+      </section>
+
+      <section id="flow" aria-labelledby="h-flow">
+        <h2 id="h-flow">The flow</h2>
+        <ol class="flow">
+          <li><b>Scan.</b> You pick a sample face or upload a selfie. YouCam Skin Analysis measures it once.</li>
+          <li><b>Measure.</b> You get twelve shoppable concerns, each scored from 1 to 100 (higher is healthier), with a mask showing where on the face it was measured.</li>
+          <li><b>Verdict.</b> Every product on the shelf gets a Match, Partial or Skip. Open any one to see its receipt, and a predicted result where YouCam Skin Simulation can render it.</li>
+        </ol>
+        <p><a class="btn btn-primary" href="/try/?face=s2">Try a sample face</a></p>
+      </section>
+
+      <section id="verdicts" aria-labelledby="h-verdicts">
+        <h2 id="h-verdicts">How a verdict is decided</h2>
+        <p>Each product targets one to three skin concerns. A pore mask targets pores. For each product, Receipts takes the targeted concern that sits furthest below its cut-off and compares your score with two cut-offs.</p>
+        <div class="cuts">
+          <div class="cut"><span class="badge b-match"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>Match</span><b>Below 65</b><span>You are weak here, and this product targets it.</span></div>
+          <div class="cut"><span class="badge b-partial"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>Partial</span><b>65 to 79</b><span>A mild concern, so it may help a little.</span></div>
+          <div class="cut"><span class="badge b-skip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>Skip</span><b>80 or more</b><span>Healthy here. You do not need this.</span></div>
+        </div>
+        <p>Hydration reads lower on every face we scanned, so it uses 50 and 65 instead. If a score is missing, the answer is Unclear, never a guess.</p>
+        <p><b>A worked example.</b> On Sample C, oiliness scored 54. That is below 65, so the Matte Balance Toner is a Match. On Sample B, oiliness scored 98, so the same toner is a Skip.</p>
+        <p>There is no AI opinion in this step. It is arithmetic on your scores, and a separate script recomputes all 36 verdicts (three faces, twelve products) to check the app: <a href="https://github.com/tanishmisra9/receipts-skin/blob/main/scripts/recheck.py">scripts/recheck.py</a>. All 36 agree.</p>
+      </section>
+
+      <section id="youcam" aria-labelledby="h-youcam">
+        <h2 id="h-youcam">What YouCam does</h2>
+        <div class="apis">
+          <div class="api"><b>Skin Analysis</b><span>Scores 14 concerns from one selfie and returns a detection mask for each. We use the raw score, not the friendlier display score, which YouCam describes as adjusted to be more favorable. One scan costs 16 units.</span></div>
+          <div class="api"><b>Skin Simulation</b><span>Renders a predicted before and after for a concern such as pores or oiliness. It appears on products where YouCam can simulate that concern. One preview costs 4 units.</span></div>
+        </div>
+      </section>
+
+      <section id="photo" aria-labelledby="h-photo">
+        <h2 id="h-photo">Your photo</h2>
+        <p>The sample faces are already measured, so choosing one uploads nothing. If you scan your own face, your photo goes to the YouCam API for analysis. This site does not store it, and YouCam says it deletes uploads after 24 hours. Mask images from a live scan expire after about two hours.</p>
+        <p>For a good scan, face the camera with your head level, take your glasses off, use even light and keep your forehead clear. A scan that fails costs nothing, so retrying is safe.</p>
+      </section>
+
+      <section id="limits" aria-labelledby="h-limits">
+        <h2 id="h-limits">What this is not</h2>
+        <ul class="plain">
+          <li><b>Not medical advice.</b> It is cosmetic guidance. See a professional for skin conditions.</li>
+          <li><b>Not calibrated on a population.</b> The cut-offs are our own heuristic from five faces, three of which are the samples here.</li>
+          <li><b>Sensitive to the scoring choice.</b> Using YouCam's display score instead of the raw score would change 8 of our 36 verdicts.</li>
+          <li><b>Not a promise.</b> A predicted result is a preview of what the model renders, not a guarantee of what a product will do.</li>
+          <li><b>Not real products.</b> The shelf is fictional, so no brand is being rated.</li>
+        </ul>
+        <p class="credits">Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people. The code is open source under the MIT license: <a href="https://github.com/tanishmisra9/receipts-skin">github.com/tanishmisra9/receipts-skin</a>.</p>
+      </section>
+    </article>
+  </div>
+</main>
+
+<!--site-footer-->
+<footer>
+  <div class="wrap">
+    <span>Cosmetic guidance only, not medical advice. Product names are fictional.</span>
+    <span>Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people.</span>
+    <span>Built with the YouCam Skin Analysis and Skin Simulation APIs. <a href="/how/">How it works</a></span>
+  </div>
+</footer>
+<!--/site-footer-->
+
+<script type="module" src="/site.js"></script>
+</body>
+</html>

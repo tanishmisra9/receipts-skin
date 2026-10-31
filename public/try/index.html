@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Try Receipts: measure your skin, read your shelf</title>
+<meta name="description" content="Pick a sample face or scan your own, then see a Match, Partial or Skip on every product.">
+<meta name="theme-color" content="#faf6ea">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script>
+  // Pre-paint: apply the saved theme (else the system one) before first paint, so there is no flash.
+  (function () {
+    try {
+      var t = localStorage.getItem('theme');
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+      var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'dark' ? '#171310' : '#faf6ea';
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!--site-header-->
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
+    <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a></nav>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
+  </div>
+</header>
+<!--/site-header-->
+
+<main id="main" tabindex="-1" style="outline:none">
+  <div class="wrap">
+    <ol class="stepper" id="stepper" aria-label="Progress">
+      <li data-step="choose"><span class="n">1</span><span class="t">Choose</span></li>
+      <li data-step="analyze"><span class="n">2</span><span class="t">Analyze</span></li>
+      <li data-step="results"><span class="n">3</span><span class="t">Your shelf</span></li>
+    </ol>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <!-- Step 1 -->
+    <section id="step-choose" aria-labelledby="h-choose" hidden>
+      <h1 id="h-choose" tabindex="-1">Pick a face to start.</h1>
+      <p class="lede">Use a sample to see the whole thing in one tap, or scan your own face.</p>
+      <div class="choose">
+        <div class="panel" aria-labelledby="h-samples">
+          <h2 id="h-samples">Sample faces</h2>
+          <p class="sub">Already measured, so you see results straight away. No upload.</p>
+          <div class="samples" id="samples"></div>
+        </div>
+        <div class="panel" aria-labelledby="h-own">
+          <h2 id="h-own">Your own face</h2>
+          <label class="drop" id="drop">
+            <span class="drop-ic" id="dropIcon"></span>
+            <span class="drop-main">Choose or take a photo</span>
+            <span class="drop-sub">or drag one here</span>
+            <input id="file" type="file" accept="image/*">
+          </label>
+          <ul class="tips" id="tips" aria-label="Photo tips"></ul>
+          <p class="privacy"><span id="shieldIcon"></span><span>Your photo goes to YouCam for analysis. This site stores nothing, and YouCam deletes uploads after 24 hours.</span></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 2 -->
+    <section id="step-analyze" aria-labelledby="h-analyze" hidden>
+      <h1 id="h-analyze" tabindex="-1">Reading your skin.</h1>
+      <p class="lede">This usually takes about 10 seconds.</p>
+      <div class="analyze">
+        <div class="photo scanning" id="anPhoto"><img id="anImg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Your photo, being analyzed"><div class="tag">Analyzing with YouCam…</div></div>
+        <div class="an-side">
+          <ul class="stages" id="stages" aria-label="Progress">
+            <li data-s="upload">Uploading your photo</li>
+            <li data-s="measure">Measuring 14 concerns</li>
+            <li data-s="masks">Drawing the masks</li>
+          </ul>
+          <p class="timer num" id="timer" aria-hidden="true">0s</p>
+          <div class="an-actions">
+            <button class="btn" id="cancelBtn" type="button">Cancel</button>
+          </div>
+          <div class="an-error" id="anError" role="alert" hidden>
+            <p id="anErrorText"></p>
+            <button class="btn btn-primary" id="retryBtn" type="button">Try another photo</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3 -->
+    <section id="step-results" aria-labelledby="h-results" hidden>
+      <div class="skin">
+        <div class="skin-photo">
+          <div class="photo" id="photo">
+            <img id="photoImg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Face being analyzed">
+            <img class="mask" id="maskImg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="" hidden>
+            <div class="tag" id="tag" hidden></div>
+          </div>
+        </div>
+        <div class="skin-main">
+          <p class="kicker" id="resKicker"></p>
+          <h1 id="h-results" tabindex="-1"></h1>
+          <p class="meta" id="meta"></p>
+          <div class="bars" id="bars"></div>
+          <p class="hint">Raw YouCam scores, 1 to 100, higher is healthier. Tap a row to see where it was measured.</p>
+          <div class="skin-actions">
+            <button class="btn btn-primary" id="topMatch" type="button" hidden></button>
+            <a class="btn" id="another" href="/try/">Try another face</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="shelf-head">
+        <h2 id="shelfTitle">The shelf</h2>
+        <div class="filters" id="filters" role="group" aria-label="Filter products"></div>
+      </div>
+      <div class="shelf" id="shelfGrid"></div>
+
+      <div class="panel claim">
+        <h2>Got a product in mind?</h2>
+        <p class="sub">Paste what the label claims, for example "fades dark spots and boosts glow".</p>
+        <form class="claimbox" id="claimForm"><input id="claim" type="text" maxlength="200" placeholder="Paste a product claim" aria-label="Product claim"><button class="btn" type="submit">Check it</button></form>
+        <p class="sub" style="margin-top:10px">Wondering how verdicts work? <a href="/how/">Read how it works</a>.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!--site-footer-->
+<footer>
+  <div class="wrap">
+    <span>Cosmetic guidance only, not medical advice. Product names are fictional.</span>
+    <span>Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people.</span>
+    <span>Built with the YouCam Skin Analysis and Skin Simulation APIs. <a href="/how/">How it works</a></span>
+  </div>
+</footer>
+<!--/site-footer-->
+
+<!-- Receipt overlay: sibling of <main>, so inert on <main> never disables it. -->
+<div class="backdrop" id="backdrop"></div>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Receipt" tabindex="-1">
+  <div class="grab" aria-hidden="true"></div>
+  <div class="ov-bar">
+    <div class="ov-nav" id="ovNav">
+      <button class="icon-btn" id="ovPrev" type="button" aria-label="Previous product"></button>
+      <span class="ov-count num" id="ovCount"></span>
+      <button class="icon-btn" id="ovNext" type="button" aria-label="Next product"></button>
+    </div>
+    <button class="icon-btn" id="ovClose" type="button" aria-label="Close receipt"></button>
+  </div>
+  <div class="ov-body">
+    <div class="ov-photo">
+      <div class="photo" id="ovPhoto">
+        <img id="ovImg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
+        <img class="mask" id="ovMask" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="" hidden>
+        <img class="sim" id="ovSim" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Predicted result after treatment" hidden>
+        <span class="cmp-line" id="ovLine" hidden></span>
+        <input class="cmp" id="ovCmp" type="range" min="0" max="100" value="50" aria-label="Drag to compare before and after" hidden>
+        <div class="tag" id="ovTag" hidden></div>
+      </div>
+      <div class="view-toggle" id="ovToggle" role="group" aria-label="Photo view" hidden>
+        <button type="button" class="chip" data-v="measured" aria-pressed="true">Measured</button>
+        <button type="button" class="chip" data-v="preview" aria-pressed="false">Predicted result</button>
+      </div>
+    </div>
+    <div class="ov-receipt" id="ovReceipt"></div>
+  </div>
+</div>
+
+<script type="module" src="/site.js"></script>
+<script type="module" src="/try.js"></script>
+</body>
+</html>

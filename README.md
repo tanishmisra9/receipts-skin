@@ -8,6 +8,16 @@ Live demo: https://receipts-skin.vercel.app (sample faces work with no sign-in; 
 
 Built for the YouCam API Skin AI & eCommerce VTO Hackathon (Skin AI track).
 
+## Pages
+
+| Page | Job |
+|---|---|
+| `/` Landing | One tap to a sample face, plus a rotating tape of real receipts |
+| `/try/` Try | Three steps: choose a face or upload one, analyze, then read your shelf. Deep links work: `/try/?face=s2&p=toner` opens a receipt |
+| `/how/` How it works | The rules, the APIs, your photo, and what this is not |
+
+One document scroll everywhere: only the header is fixed. A receipt opens as a focused overlay (a bottom sheet on phones).
+
 ## What it does
 
 1. **Scan.** A selfie goes to YouCam Skin Analysis (SD, 14 scored concerns, 16 units per scan).
@@ -40,7 +50,7 @@ Notes from building against it:
 ## Run it
 
 ```bash
-npm test                      # 9 tests, no dependencies
+npm test                      # verdict logic, plus checks that the three pages stay consistent
 npm run recheck               # independent Python re-derivation of all 36 verdicts; must match the app exactly
 python3 -m http.server 8080 --directory public   # sample faces work with no API key
 node scripts/contrast.mjs     # WCAG contrast check for both themes
