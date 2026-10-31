@@ -43,12 +43,10 @@ function render(n, { animate = true } = {}) {
   const { html } = receiptHTML(f.d.concerns, f.p.label, prod);
   const maskFile = e0 && f.d.concerns[e0.concern]?.mask;
   const ar = f.p.ar ?? 0.8;
-  $('slip').innerHTML = `
-    <div class="slip-face"><div class="photo hasmask" style="--ar:${ar}">
+  $('slip').innerHTML = `<div class="photo hasmask" style="--ar:${ar}">
       <img src="${esc(f.base)}/photo.jpg" alt="${esc(f.p.label)}, ${e0 ? LABEL[e0.concern] : ''} measured" width="130" height="${Math.round(130 / ar)}">
       ${maskFile ? `<img class="mask on" src="${esc(f.base)}/${esc(maskFile)}" alt="">` : ''}
-    </div></div>
-    <div class="slip-body">${html}<div class="slip-total"><span>Worth buying</span><b class="num">${f.worth} of ${f.total}</b></div></div>`;
+    </div>${html}<div class="slip-total"><span>Worth buying</span><b class="num">${f.worth} of ${f.total}</b></div>`;
   const slip = $('slip');
   if (animate && !reduced.matches) { slip.classList.remove('print'); void slip.offsetWidth; slip.classList.add('print'); }
   document.querySelectorAll('#dots button').forEach((b, k) => b.setAttribute('aria-current', String(k === i)));

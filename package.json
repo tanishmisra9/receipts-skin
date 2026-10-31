@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "dev": "node scripts/dev.mjs",
     "test": "node --test",
     "recheck": "python3 scripts/recheck.py"
   }

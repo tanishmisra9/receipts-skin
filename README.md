@@ -52,7 +52,7 @@ Notes from building against it:
 ```bash
 npm test                      # verdict logic, plus checks that the three pages stay consistent
 npm run recheck               # independent Python re-derivation of all 36 verdicts; must match the app exactly
-python3 -m http.server 8080 --directory public   # sample faces work with no API key
+npm run dev                   # local server (no-store cache); sample faces work with no API key
 node scripts/contrast.mjs     # WCAG contrast check for both themes
 ```
 

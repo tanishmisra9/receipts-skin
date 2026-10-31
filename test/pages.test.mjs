@@ -44,7 +44,7 @@ test('every internal link and asset resolves to a real file', () => {
 });
 
 test('module imports resolve (absolute paths, since pages sit at different depths)', () => {
-  for (const f of ['site.js', 'try.js', 'landing.js', 'receipt.js']) {
+  for (const f of ['site.js', 'try.js', 'landing.js', 'receipt.js', 'how.js']) {
     const src = readFileSync(new URL(f, PUB), 'utf8');
     for (const m of src.matchAll(/from '(\/[^']+)'/g)) assert.ok(existsSync(new URL(`.${m[1]}`, PUB)), `${f} imports missing ${m[1]}`);
   }
@@ -60,7 +60,45 @@ test('one document scroll: only the header is sticky; fixed is limited to the ov
 });
 
 test('copy rule: no em dashes in any page or script', () => {
-  for (const f of ['index.html', 'try/index.html', 'how/index.html', 'try.js', 'landing.js', 'receipt.js', 'site.js']) {
+  for (const f of ['index.html', 'try/index.html', 'how/index.html', 'try.js', 'landing.js', 'receipt.js', 'site.js', 'how.js']) {
     assert.ok(!readFileSync(new URL(f, PUB), 'utf8').includes('—'), `${f} contains an em dash`);
   }
+});
+
+test('every class used in the static markup exists in styles.css (catches markup ahead of the stylesheet)', () => {
+  const css = readFileSync(new URL('styles.css', PUB), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  const missing = [];
+  for (const [url, h] of Object.entries(html)) {
+    const classes = new Set([...h.matchAll(/class="([^"]+)"/g)].flatMap((m) => m[1].split(/\s+/)).filter(Boolean));
+    for (const c of classes) if (!new RegExp(`\\.${c.replace(/[-]/g, '\\-')}(?![\\w-])`).test(css)) missing.push(`${url} .${c}`);
+  }
+  assert.deepEqual(missing, []);
+});
+
+test('How it works stays scannable: at most 260 visible words outside the collapsed rows', () => {
+  const main = html['/how/'].match(/<main[\s\S]*<\/main>/)[0];
+  const visible = main.replace(/<details[\s\S]*?<\/details>/g, ' ').replace(/<svg[\s\S]*?<\/svg>/g, ' ').replace(/<[^>]+>/g, ' ');
+  const words = visible.split(/\s+/).filter((w) => /[A-Za-z0-9]/.test(w)).length;
+  assert.ok(words <= 260, `How page shows ${words} words, budget is 260`);
+});
+
+test('dev server never lets the browser reuse a stale file (no-store), and redirects folders like Vercel', async () => {
+  const { spawn } = await import('node:child_process');
+  const port = 18080 + Math.floor(Math.random() * 500);
+  const srv = spawn('node', ['scripts/dev.mjs'], { env: { ...process.env, PORT: String(port) }, stdio: 'ignore' });
+  try {
+    let res;
+    for (let i = 0; i < 40 && !res; i++) { try { res = await fetch(`http://localhost:${port}/styles.css`); } catch { await new Promise((r) => setTimeout(r, 100)); } }
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get('cache-control'), 'no-store');
+    const dir = await fetch(`http://localhost:${port}/try`, { redirect: 'manual' });
+    assert.equal(dir.status, 308); assert.equal(dir.headers.get('location'), '/try/');
+  } finally { srv.kill(); }
+});
+
+test('data-reveal never sits on .btn, .card or .sample (they own a hover transform the reveal would override)', () => {
+  const bad = [];
+  for (const [url, h] of Object.entries(html))
+    for (const m of h.matchAll(/<[a-z0-9]+\s[^>]*data-reveal[^>]*>/g)) if (/class="[^"]*\b(btn|card|sample)\b/.test(m[0])) bad.push(`${url} ${m[0]}`);
+  assert.deepEqual(bad, []);
 });

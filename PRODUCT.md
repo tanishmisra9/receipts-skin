@@ -27,7 +27,7 @@ Plain, honest, a little dry. Confident without hype. No em dashes. Errors say wh
 - No upsell patterns, countdowns, or fake urgency.
 - No claims we can't source (return rates, clinical accuracy).
 - No real brand names or logos; product names are fictional.
-- No decorative motion; motion explains cause and effect.
+- No decorative motion except one quiet, one-time blur-fade as sections scroll into view (never on first-viewport content, off under reduced motion). Other motion explains cause and effect.
 
 ## Constraints
 Static site, no framework or build step; Vercel; one serverless function for live scans. Sample faces work with no key. Accessibility: WCAG AA contrast, keyboard operable, reduced motion respected.
