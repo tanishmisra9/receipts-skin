@@ -2,18 +2,21 @@
   {
     "id": "s1",
     "label": "Sample A",
-    "ar": 0.765
+    "ar": 0.765,
+    "rescan": "dim"
   },
   {
     "id": "s2",
     "label": "Sample B",
     "ar": 0.817,
-    "sim": true
+    "sim": true,
+    "rescan": "dim"
   },
   {
     "id": "s3",
     "label": "Sample C",
     "ar": 0.89,
-    "sim": true
+    "sim": true,
+    "rescan": "dim"
   }
 ]

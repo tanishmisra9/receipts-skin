@@ -1,4 +1,6 @@
-import { verdict, claimTargets, SHOPPABLE, LABEL, cut } from '/verdict.js';
+import { verdict, combineScans, SHOPPABLE, LABEL, cut } from '/verdict.js';
+import { parseHaul, summarize, money } from '/haul.js';
+import { makeCard } from '/card.js';
 import { icon } from '/icons.js';
 import { esc, VERDICT, VICON, band, receiptHTML } from '/receipt.js';
 
@@ -88,6 +90,15 @@ const ovView = makeView($('ovPhoto'), { img: $('ovImg'), maskEl: $('ovMask'), ta
 // ---------- results ----------
 const ranked = () => { const c = current.concerns; return SHOPPABLE.filter((k) => c[k]).sort((a, b) => c[a].raw - c[b].raw); };
 const rows = () => products.map((p) => ({ p, v: verdict(current.concerns, p) }));
+// "Flattering view": what the display score (ui_score, which the docs say is adjusted to look better) would have said.
+let flatter = false;
+const asUi = (c) => Object.fromEntries(Object.entries(c).map(([k, x]) => [k, { raw: x.ui }]));
+const flatRows = () => products.map((p) => { const was = verdict(current.concerns, p, { band: false }), v = verdict(asUi(current.concerns), p, { band: false }); return { p, v, was, changed: was.verdict !== v.verdict }; });
+function syncFlatter() {
+  const changed = flatter ? flatRows().filter((x) => x.changed).length : 0;
+  $('flatter').setAttribute('aria-pressed', String(flatter));
+  $('flatNote').textContent = flatter ? `On the display score, ${changed} of ${products.length} verdicts change (outlined). YouCam's docs say it is adjusted to look better.` : '';
+}
 
 function renderBars() {
   const c = current.concerns;
@@ -106,15 +117,15 @@ function showBarMask(k) {
 }
 
 function renderShelf() {
-  const r = rows();
+  const r = flatter ? flatRows() : rows();
   const n = (k) => r.filter((x) => x.v.verdict === k).length;
-  const opts = [['all', `All ${r.length}`], ['match', `Match ${n('match')}`], ['partial', `Partial ${n('partial')}`], ['skip', `Skip ${n('skip')}`]];
+  const opts = [['all', `All ${r.length}`], ['match', `Match ${n('match')}`], ['partial', `Partial ${n('partial')}`], ['skip', `Skip ${n('skip')}`], ...(n('close') ? [['close', `Too close ${n('close')}`]] : [])];
   $('filters').innerHTML = opts.map(([k, t]) => `<button class="chip" data-f="${k}" aria-pressed="${filter === k}" type="button">${t}</button>`).join('');
   $('filters').querySelectorAll('.chip').forEach((b) => b.addEventListener('click', () => { filter = b.dataset.f; renderShelf(); }));
-  $('shelfGrid').innerHTML = r.filter((x) => filter === 'all' || x.v.verdict === filter).map(({ p, v }) => `
-    <button class="card" data-id="${p.id}" type="button">
+  $('shelfGrid').innerHTML = r.filter((x) => filter === 'all' || x.v.verdict === filter).map(({ p, v, was, changed }) => `
+    <button class="card${changed ? ' changed' : ''}" data-id="${p.id}" type="button">
       <span class="badge b-${v.verdict}">${icon(VICON[v.verdict], 14)}${VERDICT[v.verdict]}</span>
-      <span class="brand">${esc(p.brand)}</span><span class="name">${esc(p.name)}</span><span class="claim">${esc(p.claim)}</span>
+      <span class="brand">${esc(p.brand)}</span><span class="name">${esc(p.name)}</span><span class="claim">${changed ? `Raw score says ${VERDICT[was.verdict]}` : esc(p.claim)}</span>
     </button>`).join('');
   $('shelfGrid').querySelectorAll('.card').forEach((b) => b.addEventListener('click', () => openReceipt(products.find((p) => p.id === b.dataset.id), b)));
 }
@@ -126,11 +137,11 @@ function renderResults() {
   $('resKicker').textContent = current.label;
   $('h-results').textContent = `${worth} of ${r.length} products are worth your money.`;
   const st = current.skin_type?.whole;
-  $('meta').textContent = [`${n('skip')} ${n('skip') === 1 ? 'is a Skip' : 'are a Skip'}`, st && `${cap(st.toLowerCase())} skin`, current.skin_age && `skin age ${current.skin_age}`, current.maskNote].filter(Boolean).join(' · ');
+  $('meta').textContent = [`${n('skip')} ${n('skip') === 1 ? 'is a Skip' : 'are a Skip'}`, n('skip') && `skipping them keeps ${money(r.filter((x) => x.v.verdict === 'skip').reduce((s, x) => s + (x.p.price ?? 0), 0))} (demo prices)`, n('close') && `${n('close')} too close to call`, st && `${cap(st.toLowerCase())} skin`, current.skin_age && `skin age ${current.skin_age}`, current.photos > 1 && `${current.photos} photos averaged`, current.maskNote].filter(Boolean).join(' · ');
   root.style.setProperty('--ar', String(currentAr));
   mainView.set(photoSrc, `Face being analyzed (${current.label})`);
-  filter = 'all';
-  renderBars(); renderShelf();
+  filter = 'all'; flatter = false; syncFlatter();
+  renderBars(); renderShelf(); renderCart();
   const weakest = ranked()[0];
   if (weakest) showBarMask(weakest);
   const top = r.find((x) => x.v.verdict === 'match') ?? r.find((x) => x.v.verdict === 'partial');
@@ -144,7 +155,7 @@ const isOpen = () => $('overlay').dataset.open === 'true';
 const visibleIds = () => [...$('shelfGrid').querySelectorAll('.card')].map((c) => c.dataset.id);
 
 function fillOverlay(p, title) {
-  const { html, e0 } = receiptHTML(current.concerns, current.label, p, title);
+  const { html, e0 } = receiptHTML(current.concerns, current.label, p, title, current.simScores, rescanText());
   $('ovReceipt').innerHTML = html;
   root.style.setProperty('--ar', String(currentAr));
   ovView.set(photoSrc, e0 ? `${current.label}, ${LABEL[e0.concern]}` : current.label);
@@ -212,15 +223,62 @@ function syncOverlay(pid) {
   else hideOverlay();
 }
 
-// ---------- claim box ----------
-$('claimForm').addEventListener('submit', (e) => {
-  e.preventDefault();
-  const text = $('claim').value.trim(); if (!text || !current) return;
-  const targets = claimTargets(text);
-  if (!targets.length) { status('We could not map that to something we measure. Try words like pores, dark spots, hydration, redness, wrinkles or glow.', true); return; }
-  status('');
-  openReceipt({ id: '_claim', name: text, targets }, e.submitter, `"${text}"`);
+// ---------- rescan to resolve a "too close" verdict ----------
+// One extra photo, once. A sample face uses its saved second photo (0 units); a live scan asks for a new photo (16 units).
+const sampleRescan = () => personas.find((x) => x.id === activeId)?.rescan;
+function rescanText() {
+  if (!current || current.photos > 1) return null;
+  if (activeId === '__me') return 'Rescan with a second photo (16 units)';
+  return sampleRescan() ? 'Rescan with a second photo (saved, 0 units)' : null;
+}
+let rescanBase = null;
+$('ovReceipt').addEventListener('click', async (e) => {
+  if (!e.target.closest('#ovRescan')) return;
+  if (activeId === '__me') { rescanBase = current; hideOverlay(); history.replaceState(null, '', '?scan=1'); $('rescanFile').click(); return; }
+  const id = activeId, v = sampleRescan();
+  const second = await fetchJSON(`/stability/${id}/${v}.json`);
+  const merged = combineScans(current, second);
+  load(merged, photoSrc, `${personas.find((x) => x.id === id).label} · 2 photos`, currentAr, id);
+  fillOverlay(sel);
+  $('ovClose').focus();
 });
+$('rescanFile').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startScan(f, rescanBase); else rescanBase = null; });
+
+// ---------- paste your cart ----------
+const CART_EXAMPLE = 'Niacinamide 10% serum $6\nHydrating gel cream $24\nBrightening vitamin C serum $38\nPore clay mask $22';
+let cart = null;
+function renderCart() {
+  const text = $('cart').value.trim();
+  if (!text || !current) { cart = null; $('cartOut').innerHTML = ''; return; }
+  cart = summarize(parseHaul(text), current.concerns);
+  const total = cart.skipCount
+    ? `<div class="cart-total"><span>Skip ${cart.skipCount}, you keep</span><b class="num">${money(cart.keep)}</b></div>`
+    : `<div class="cart-total"><span>Nothing here to skip for this face</span></div>`;
+  const rows = cart.rows.map((r, i) => `<button class="cart-row" data-i="${i}" type="button">
+    <span class="badge b-${r.v.verdict}">${icon(VICON[r.v.verdict], 14)}${VERDICT[r.v.verdict]}</span><span class="name">${esc(r.name)}</span><span class="num">${r.price === null ? '' : money(r.price)}</span>
+    <span class="why">${esc(r.v.reason)}</span></button>`).join('');
+  $('cartOut').innerHTML = `${rows}${total}<p class="cart-note">Prices are what you typed; items marked Too close or Unclear are not counted. We match label claims and ingredient names. That says nothing about whether a product works.</p>`;
+  $('cartOut').querySelectorAll('.cart-row').forEach((b) => b.addEventListener('click', () => { const r = cart.rows[b.dataset.i]; openReceipt({ id: r.id, name: r.name, targets: r.targets }, b, r.name); }));
+}
+$('cartForm').addEventListener('submit', (e) => { e.preventDefault(); renderCart(); });
+$('flatter').addEventListener('click', () => { flatter = !flatter; syncFlatter(); renderShelf(); });
+
+// ---------- share card: the cart if there is one, else the shelf. No face, no mask. ----------
+$('saveCard').addEventListener('click', async () => {
+  const useCart = cart?.rows.length;
+  const rowsSrc = useCart ? cart.rows.map((r) => ({ name: r.name, verdict: r.v.verdict, price: r.price })) : rows().map(({ p, v }) => ({ name: p.name, verdict: v.verdict, price: p.price ?? null }));
+  const skips = rowsSrc.filter((r) => r.verdict === 'skip');
+  const keep = skips.reduce((s, r) => s + (r.price ?? 0), 0);
+  try {
+    const blob = await makeCard({ label: `${useCart ? 'My cart' : 'The shelf'} · ${current.label}`, rows: rowsSrc, keep, skipCount: skips.length, note: useCart ? 'Prices as typed. Unsure items not counted.' : 'Demo prices, made up for the demo.' });
+    const file = new File([blob], 'my-receipt.png', { type: 'image/png' });
+    // Phones get the share sheet (a download is awkward there); desktops get a file.
+    if (matchMedia('(pointer: coarse)').matches && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: 'My skin receipt' }).catch(() => {}); return; }
+    const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'my-receipt.png' });
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  } catch (e) { status(e.message || 'Could not save the image.', true); }
+});
+$('cartExample').addEventListener('click', () => { $('cart').value = CART_EXAMPLE; renderCart(); });
 
 // ---------- loading faces ----------
 function load(data, src, label, ar, id) {
@@ -235,6 +293,9 @@ async function loadPersona(id) {
   if (p.sim) {
     const m = await fetchJSON(`${base}/sim.json`);
     data.sim = Object.fromEntries(Object.entries(m).map(([k, v]) => [k, `${base}/${v.file}`]));
+    // What YouCam's own analyzer measures on each preview image (scripts/stability.mjs --sim).
+    const scored = await Promise.all(Object.keys(m).map((k) => fetchJSON(`${base}/sim-scores/${k}.json`).then((j) => [k, j.concerns], () => null)));
+    data.simScores = Object.fromEntries(scored.filter(Boolean));
   }
   load(data, `${base}/photo.jpg`, p.label, p.ar ?? 0.8, id);
 }
@@ -278,7 +339,7 @@ function setStage(name) {
 function startTimer() { const t0 = Date.now(); $('timer').textContent = '0s'; timerId = setInterval(() => { $('timer').textContent = `${Math.round((Date.now() - t0) / 1000)}s`; }, 1000); }
 function stopTimer() { clearInterval(timerId); timerId = null; }
 
-async function startScan(file) {
+async function startScan(file, base = null) {
   if (scanning) return;
   if (!file.type.startsWith('image/')) { status('That file is not an image. Try a JPG or PNG.', true); return; }
   status('');
@@ -300,10 +361,11 @@ async function startScan(file) {
       if (j.status === 'running') continue;
       if (j.status !== 'success') throw new Error(j.message || 'Scan failed.');
       setStage('masks');
-      const scores = withMasks(j.scores);
+      const scores = base ? combineScans(base, withMasks(j.scores)) : withMasks(j.scores);
+      rescanBase = null;
       saveScan({ scores, photoSrc: dataUrl, ar });
       scanning = false; stopTimer();
-      load(scores, dataUrl, 'Your scan', ar, '__me');
+      load(scores, dataUrl, base ? 'Your scan · 2 photos' : 'Your scan', ar, '__me');
       history.replaceState(null, '', '?scan=1');
       showStep('results');
       return;

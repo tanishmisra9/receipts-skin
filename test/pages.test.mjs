@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 
 const PUB = new URL('../public/', import.meta.url);
-const PAGES = { '/': 'index.html', '/try/': 'try/index.html', '/how/': 'how/index.html' };
+const PAGES = { '/': 'index.html', '/try/': 'try/index.html', '/how/': 'how/index.html', '/evidence/': 'evidence/index.html', '/store/': 'store/index.html' };
 const html = Object.fromEntries(Object.entries(PAGES).map(([url, f]) => [url, readFileSync(new URL(f, PUB), 'utf8')]));
 const between = (s, a, b) => s.slice(s.indexOf(a), s.indexOf(b) + b.length);
 
@@ -44,7 +44,7 @@ test('every internal link and asset resolves to a real file', () => {
 });
 
 test('module imports resolve (absolute paths, since pages sit at different depths)', () => {
-  for (const f of ['site.js', 'try.js', 'landing.js', 'receipt.js', 'how.js']) {
+  for (const f of ['site.js', 'try.js', 'landing.js', 'receipt.js', 'how.js', 'evidence.js', 'evidence-data.js', 'store.js', 'haul.js', 'card.js']) {
     const src = readFileSync(new URL(f, PUB), 'utf8');
     for (const m of src.matchAll(/from '(\/[^']+)'/g)) assert.ok(existsSync(new URL(`.${m[1]}`, PUB)), `${f} imports missing ${m[1]}`);
   }

@@ -30,7 +30,7 @@
 <header class="site-header">
   <div class="wrap bar">
     <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
-    <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a></nav>
+    <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a><a href="/evidence/">Evidence</a></nav>
     <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
   </div>
 </header>
@@ -68,15 +68,16 @@
               <p class="sub">Drag the score. The verdict follows.</p>
             </div>
             <div class="seg" role="group" aria-label="Concern">
-              <button class="chip" type="button" data-c="pore" aria-pressed="true">Pores</button>
+              <button class="chip" type="button" data-c="eye_bag" aria-pressed="true">Eye bags</button>
               <button class="chip" type="button" data-c="moisture" aria-pressed="false">Hydration</button>
+              <button class="chip" type="button" data-c="pore" aria-pressed="false">Pores</button>
             </div>
           </div>
           <div class="gauge">
-            <div class="gauge-top"><span id="gaugeLabel">Pores score</span><b class="num" id="scoreNum">52</b></div>
+            <div class="gauge-top"><span id="gaugeLabel">Eye bags score</span><b class="num" id="scoreNum">72</b></div>
             <div class="gauge-track">
               <div class="zones" id="zones" aria-hidden="true"></div>
-              <input id="score" type="range" min="0" max="100" value="52" aria-label="Score" aria-describedby="ruleOut">
+              <input id="score" type="range" min="0" max="100" value="72" aria-label="Score" aria-describedby="ruleOut">
               <div class="ticks" id="ticks" aria-hidden="true"></div>
             </div>
             <ul class="legend" id="legend"></ul>
@@ -87,7 +88,7 @@
       </section>
 
       <section class="apis" aria-label="What YouCam does" data-reveal>
-        <div class="api"><b>Skin Analysis</b><span>Scores 14 concerns and draws a mask for each.</span><span class="chip-static num">16 units a scan</span></div>
+        <div class="api"><b>Skin Analysis</b><span>Scores 15 concerns and draws a mask for each.</span><span class="chip-static num">16 units a scan</span></div>
         <div class="api"><b>Skin Simulation</b><span>Predicts a before and after.</span><span class="chip-static num">4 units a preview</span></div>
       </section>
 
@@ -97,7 +98,7 @@
           <summary>Your photo</summary>
           <ul>
             <li>Sample faces upload nothing.</li>
-            <li>Your own photo goes to YouCam for analysis. We store nothing, and YouCam deletes it after 24 hours.</li>
+            <li>Your own photo goes to YouCam for analysis. We keep nothing on our server, and YouCam deletes it after 24 hours.</li>
             <li>Best results: face the camera, glasses off, even light.</li>
           </ul>
         </details>
@@ -105,7 +106,9 @@
           <summary>What this is not</summary>
           <ul>
             <li>Not medical advice.</li>
+            <li>YouCam is the sensor. Nothing in the rule or the noise tests is specific to YouCam except the input format.</li>
             <li>Cut-offs are our own heuristic from five faces.</li>
+            <li>A different photo of the same face can move a score. We measured by how much: <a href="/evidence/">see the evidence</a>.</li>
             <li>Using YouCam's display score instead of the raw score would change 8 of our 36 verdicts.</li>
             <li>A predicted result is a preview, not a promise.</li>
             <li>The shelf is fictional.</li>

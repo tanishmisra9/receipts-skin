@@ -30,7 +30,7 @@
 <header class="site-header">
   <div class="wrap bar">
     <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
-    <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a></nav>
+    <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a><a href="/evidence/">Evidence</a></nav>
     <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
   </div>
 </header>
@@ -62,9 +62,10 @@
             <span class="drop-main">Choose or take a photo</span>
             <span class="drop-sub">or drag one here</span>
             <input id="file" type="file" accept="image/*">
+            <input id="rescanFile" type="file" accept="image/*" hidden>
           </label>
           <ul class="tips" id="tips" aria-label="Photo tips"></ul>
-          <p class="privacy"><span id="shieldIcon"></span><span>Your photo goes to YouCam for analysis. This site stores nothing, and YouCam deletes uploads after 24 hours.</span></p>
+          <p class="privacy"><span id="shieldIcon"></span><span>Your photo goes to YouCam for analysis. We keep nothing on our server, and YouCam deletes uploads after 24 hours.</span></p>
         </div>
       </div>
     </section>
@@ -78,7 +79,7 @@
         <div>
           <ul class="stages" id="stages" aria-label="Progress">
             <li data-s="upload">Uploading your photo</li>
-            <li data-s="measure">Measuring 14 concerns</li>
+            <li data-s="measure">Measuring 15 concerns</li>
             <li data-s="masks">Drawing the masks</li>
           </ul>
           <p class="timer num" id="timer" aria-hidden="true">0s</p>
@@ -111,6 +112,7 @@
           <p class="hint">Raw YouCam scores, 1 to 100, higher is healthier. Tap a row to see where it was measured.</p>
           <div class="skin-actions">
             <button class="btn btn-primary" id="topMatch" type="button" hidden></button>
+            <button class="btn" id="saveCard" type="button">Save receipt image</button>
             <a class="btn" id="another" href="/try/">Try another face</a>
           </div>
         </div>
@@ -120,12 +122,18 @@
         <h2 id="shelfTitle">The shelf</h2>
         <div class="filters" id="filters" role="group" aria-label="Filter products"></div>
       </div>
+      <div class="flat"><button class="chip" id="flatter" type="button" aria-pressed="false">Show what the flattering score says</button><p class="cart-note" id="flatNote" aria-live="polite"></p></div>
       <div class="shelf" id="shelfGrid"></div>
 
       <div class="panel claim">
-        <h2>Got a product in mind?</h2>
-        <p class="sub">Paste what the label claims, for example "fades dark spots and boosts glow".</p>
-        <form class="claimbox" id="claimForm"><input id="claim" type="text" maxlength="200" placeholder="Paste a product claim" aria-label="Product claim"><button class="btn" type="submit">Check it</button></form>
+        <h2>About to buy something?</h2>
+        <p class="sub">Paste your cart, one product per line, with a price if you like. We match label claims and ingredient names, for example "Vitamin C serum $38 fades dark spots". Nothing leaves your browser.</p>
+        <form class="cartbox" id="cartForm">
+          <label class="sr" for="cart">Products in your cart, one per line</label>
+          <textarea id="cart" rows="4" maxlength="3200" placeholder="Niacinamide 10% serum $6&#10;Hydrating gel cream $24&#10;Brightening vitamin C serum $38"></textarea>
+          <div class="cartbtns"><button class="btn btn-primary" type="submit">Check my cart</button><button class="btn" id="cartExample" type="button">Try an example</button></div>
+        </form>
+        <div id="cartOut" aria-live="polite"></div>
         <p class="sub" style="margin-top:10px">Wondering how verdicts work? <a href="/how/">Read how it works</a>.</p>
       </div>
     </section>

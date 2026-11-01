@@ -15,8 +15,8 @@ const lum = (hex) => {
 const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 
 const TEXT = [['ink', 'bg'], ['ink', 'surface'], ['muted', 'bg'], ['muted', 'surface'], ['accent-ink', 'accent'], ['bg', 'ink'],
-  ['match', 'match-bg'], ['partial', 'partial-bg'], ['skip', 'skip-bg'], ['match', 'surface'], ['partial', 'surface'], ['skip', 'surface'], ['accent', 'bg']];
-const UI = [['match', 'track'], ['partial', 'track'], ['skip', 'track'], ['accent', 'bg'], ['accent', 'surface'], ['ink', 'bg']];
+  ['match', 'match-bg'], ['partial', 'partial-bg'], ['skip', 'skip-bg'], ['close', 'close-bg'], ['close', 'surface'], ['match', 'surface'], ['partial', 'surface'], ['skip', 'surface'], ['accent', 'bg']];
+const UI = [['match', 'track'], ['partial', 'track'], ['skip', 'track'], ['close', 'track'], ['accent', 'bg'], ['accent', 'surface'], ['ink', 'bg']];
 
 let fail = 0;
 for (const [name, t] of [['light', light], ['dark', dark]]) {

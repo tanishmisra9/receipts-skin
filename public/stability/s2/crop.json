@@ -1,0 +1,72 @@
+{
+  "face": "s2",
+  "variant": "crop",
+  "concerns": {
+    "eye_bag": {
+      "raw": 68.77785921096802,
+      "ui": 76
+    },
+    "tear_trough": {
+      "raw": 83.66020768880844,
+      "ui": 82
+    },
+    "droopy_lower_eyelid": {
+      "raw": 79.36321496963501,
+      "ui": 80
+    },
+    "droopy_upper_eyelid": {
+      "raw": 76.80221199989319,
+      "ui": 79
+    },
+    "pore": {
+      "raw": 53.53438580036163,
+      "ui": 69
+    },
+    "firmness": {
+      "raw": 74.06578063964844,
+      "ui": 78
+    },
+    "oiliness": {
+      "raw": 96.96403503417969,
+      "ui": 95
+    },
+    "redness": {
+      "raw": 93.73197174072266,
+      "ui": 90
+    },
+    "dark_circle_v2": {
+      "raw": 94.2391186952591,
+      "ui": 88
+    },
+    "texture": {
+      "raw": 89.47926759719849,
+      "ui": 85
+    },
+    "radiance": {
+      "raw": 95.49060463905334,
+      "ui": 93
+    },
+    "age_spot": {
+      "raw": 92.6446304321289,
+      "ui": 85
+    },
+    "wrinkle": {
+      "raw": 81.91456198692322,
+      "ui": 77
+    },
+    "acne": {
+      "raw": 96.89296,
+      "ui": 95
+    },
+    "moisture": {
+      "raw": 57.34182000160217,
+      "ui": 73
+    }
+  },
+  "skin_type": {
+    "whole": "Dry",
+    "t_zone": "Normal",
+    "u_zone": "Dry"
+  },
+  "skin_age": 30
+}

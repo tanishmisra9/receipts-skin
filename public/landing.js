@@ -17,18 +17,19 @@ async function build() {
     const d = await fetchJSON(`${base}/scores.json`);
     return { p, base, d };
   }));
-  // Per face: its first Match (else Partial) and its first Skip, so Skip shows up as often as Match.
+  // Per face: its first Match (else Partial), its first Too close, and its first Skip, so refusals show up as often as Matches.
   const order = ['s3', 's2', 's1'];
   const out = [];
   for (const id of order) {
     const f = loaded.find((x) => x.p.id === id); if (!f) continue;
     const vs = products.map((prod) => ({ prod, v: verdict(f.d.concerns, prod) }));
-    f.worth = vs.filter((x) => x.v.verdict !== 'skip').length; f.total = vs.length;
+    f.worth = vs.filter((x) => x.v.verdict === 'match' || x.v.verdict === 'partial').length; f.total = vs.length;
     // The strongest finding for this face: the lowest score among its Match (else Partial) products.
     const weakestFirst = (list) => list.sort((x, y) => x.v.evidence[0].raw - y.v.evidence[0].raw)[0];
     const yes = weakestFirst(vs.filter((x) => x.v.verdict === 'match')) ?? weakestFirst(vs.filter((x) => x.v.verdict === 'partial'));
+    const close = vs.find((x) => x.v.verdict === 'close');
     const no = vs.find((x) => x.v.verdict === 'skip');
-    for (const pick of [yes, no]) if (pick) out.push({ f, prod: pick.prod, e0: pick.v.evidence[0] });
+    for (const pick of [yes, close, no]) if (pick) out.push({ f, prod: pick.prod, e0: pick.v.evidence[0] });
   }
   slides = out;
 

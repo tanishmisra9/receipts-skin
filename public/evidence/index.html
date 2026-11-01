@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Receipts evidence: what we measured about YouCam's scores</title>
+<meta name="description" content="Three tests of how far to trust YouCam skin scores: the flattering score, photo changes, and its own previews.">
+<meta name="theme-color" content="#faf6ea">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<script>
+  // Pre-paint: apply the saved theme (else the system one) before first paint, so there is no flash.
+  (function () {
+    try {
+      var t = localStorage.getItem('theme');
+      if (t !== 'light' && t !== 'dark') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      document.documentElement.dataset.theme = t;
+      var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'dark' ? '#171310' : '#faf6ea';
+    } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<!--site-header-->
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
+    <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a><a href="/evidence/">Evidence</a></nav>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
+  </div>
+</header>
+<!--/site-header-->
+
+<main id="main" tabindex="-1" style="outline:none">
+  <div class="wrap">
+    <article class="how">
+      <header class="how-head">
+        <p class="kicker">Evidence</p>
+        <h1>How far to trust the scores.</h1>
+        <p class="lede">Three faces, 12 products, every number below computed in your browser from the saved scans. YouCam is the sensor. Nothing in the rule or these tests is specific to YouCam except the input format.</p>
+      </header>
+
+      <section class="ev" aria-labelledby="h-flat" data-reveal>
+        <h2 id="h-flat">1. The flattering score</h2>
+        <p class="sub" id="flatSub"></p>
+        <div id="flatTable"></div>
+      </section>
+
+      <section class="ev" aria-labelledby="h-photo" data-reveal>
+        <h2 id="h-photo">2. A different photo of the same face</h2>
+        <p class="sub" id="photoSub"></p>
+        <div id="photoTable"></div>
+        <h3 class="kicker">Photo noise per concern, in points</h3>
+        <ul class="margins" id="margins"></ul>
+      </section>
+
+      <section class="ev" aria-labelledby="h-prev" data-reveal>
+        <h2 id="h-prev">3. YouCam's own previews</h2>
+        <p class="sub" id="prevSub"></p>
+        <div id="prevTable"></div>
+      </section>
+
+      <section class="ev" aria-labelledby="h-lim" data-reveal>
+        <h2 id="h-lim">Limits</h2>
+        <ul class="plain">
+          <li>Three faces and 12 invented products. Small samples, so read the counts, not the percentages.</li>
+          <li>The noise margins come from one face (three ordinary photo changes). Four other faces are a test, and the band flagged only some of the flips there.</li>
+          <li>Test D and Test E are two more portraits used only for this test and never shown, by Divine Effiong and Luke Southern on Unsplash. Both are dark-background, dramatically lit photos, which is a harder case than a selfie by a window.</li>
+          <li>Blur, a crop and heavy JPEG compression are reported separately. They are stress tests, not ordinary selfies.</li>
+          <li>The docs say the display score is adjusted to look better. That is YouCam's statement, not our ground truth.</li>
+          <li>The cut-offs are our own heuristic. Cosmetic guidance, not medical advice.</li>
+        </ul>
+      </section>
+
+      <p data-reveal><a class="btn btn-primary" href="/try/?face=s2">Try a sample face</a></p>
+    </article>
+  </div>
+</main>
+
+<!--site-footer-->
+<footer>
+  <div class="wrap">
+    <span>Cosmetic guidance only, not medical advice. Product names are fictional.</span>
+    <span>Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people.</span>
+    <span>Built with the YouCam Skin Analysis and Skin Simulation APIs. <a href="/how/">How it works</a></span>
+  </div>
+</footer>
+<!--/site-footer-->
+
+<script type="module" src="/site.js"></script>
+<script type="module" src="/site.js"></script>
+<script type="module" src="/evidence.js"></script>
+</body>
+</html>
