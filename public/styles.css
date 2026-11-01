@@ -279,9 +279,15 @@ footer a { color: var(--ink); text-underline-offset: 3px; }
 .photo.sweep img.sim { transition: clip-path .9s var(--ease-expo); }
 .photo.sweep .cmp-line { transition: left .9s var(--ease-expo); }
 
-/* Scroll reveal (reveal.js adds .rv only to things below the fold). Never put data-reveal on .btn, .card or .sample: they own a hover transform. */
-.rv { opacity: 0; filter: blur(6px); transform: translateY(10px); }
-.rv.in { opacity: 1; filter: none; transform: none; transition: opacity .7s var(--ease-expo), filter .7s var(--ease-expo), transform .7s var(--ease-expo); }
+/* Load-in and scroll reveal (reveal.js): Telogify's blur-fade, a spring (stiffness 120, damping 20) as a CSS curve, top down.
+   `lo` is set by the inline <head> script, never without JS or under reduced motion. Never put data-reveal on .btn, .card or .sample. */
+:root { --spring: cubic-bezier(0.16, 1, 0.3, 1); --spring-t: .6s; }
+@supports (transition-timing-function: linear(0, 1)) {
+  :root { --spring: linear(0, 0.025, 0.085, 0.166, 0.257, 0.35, 0.44, 0.523, 0.599, 0.667, 0.726, 0.777, 0.82, 0.856, 0.886, 0.911, 0.931, 0.947, 0.96, 0.97, 0.978, 0.984, 0.989, 0.992, 1); --spring-t: .52s; }
+}
+.lo [data-reveal]:not(.in) { opacity: 0; filter: blur(10px); transform: translateY(10px); }
+.lo [data-reveal].in { opacity: 1; filter: blur(0); transform: none; transition: opacity var(--spring-t) var(--spring), filter var(--spring-t) var(--spring), transform var(--spring-t) var(--spring); }
+@media (prefers-reduced-motion: reduce) { .lo [data-reveal]:not(.in) { opacity: 1; filter: none; transform: none; } }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }

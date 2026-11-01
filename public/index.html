@@ -7,6 +7,7 @@
 <meta name="description" content="Scan your face once. Every product on the shelf gets a Match, Partial or Skip, backed by your own measured skin scores.">
 <meta name="theme-color" content="#faf6ea">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" as="image" href="/personas/s3/photo.jpg" fetchpriority="high"> <!-- the first receipt on the tape: starts loading with the page -->
 <script>
   // Pre-paint: apply the saved theme (else the system one) before first paint, so there is no flash.
   (function () {
@@ -16,6 +17,18 @@
       document.documentElement.dataset.theme = t;
       var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = t === 'dark' ? '#171310' : '#faf6ea';
     } catch (e) { document.documentElement.dataset.theme = 'light'; }
+  })();
+</script>
+<script>
+  // Load-in: hide [data-reveal] blocks before first paint so nothing snaps in; reveal.js fades them in top down. Never hides without JS or
+  // under reduced motion, and a timer rescues the page if the module never starts.
+  (function () {
+    try {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var h = document.documentElement; h.classList.add('lo');
+      window.__lo = setTimeout(function () { h.classList.remove('lo'); }, 4000);
+      addEventListener('pageshow', function (e) { if (e.persisted) h.classList.remove('lo'); });
+    } catch (e) {}
   })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +41,7 @@
 
 <!--site-header-->
 <header class="site-header">
-  <div class="wrap bar">
+  <div class="wrap bar" data-reveal>
     <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
     <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a><a href="/evidence/">Evidence</a></nav>
     <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
@@ -39,7 +52,7 @@
 <main id="main" tabindex="-1" style="outline:none">
   <div class="wrap">
     <section class="hero" aria-labelledby="h-hero">
-      <div class="hero-copy">
+      <div class="hero-copy" data-reveal>
         <p class="kicker">Skin analysis, with receipts</p>
         <h1 id="h-hero">Skincare advice that's allowed to say no.</h1>
         <p class="lede">A recommendation that can't say no isn't advice. Receipts measures your skin once, then tells you which products you need and which you can skip, with your own scores as proof.</p>
@@ -51,7 +64,7 @@
         <p class="fine">No sign-up. Sample faces never upload anything.</p>
       </div>
 
-      <div class="tape" role="group" aria-roledescription="carousel" aria-label="Example receipts from real scans">
+      <div class="tape" data-reveal data-wait role="group" aria-roledescription="carousel" aria-label="Example receipts from real scans">
         <div class="slip" id="slip" aria-live="off"></div>
         <div class="tape-bar">
           <div class="dots" id="dots" role="group" aria-label="Choose an example"></div>
@@ -87,7 +100,7 @@
 
 <!--site-footer-->
 <footer>
-  <div class="wrap">
+  <div class="wrap" data-reveal>
     <span>Cosmetic guidance only, not medical advice. Product names are fictional.</span>
     <span>Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people.</span>
     <span>Built with the YouCam Skin Analysis and Skin Simulation APIs. <a href="/how/">How it works</a></span>

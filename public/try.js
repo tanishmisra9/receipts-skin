@@ -44,7 +44,7 @@ function showStep(name, { focus = true } = {}) {
   });
   document.title = TITLES[name];
   if (focus) { window.scrollTo(0, 0); $(`h-${name}`).focus({ preventScroll: true }); }
-  if (name === 'results') reveal($('step-results')); // below-the-fold shelf, cart box; skips what is already marked
+  reveal($(`step-${name}`)); // fade the step's blocks in top down; skips anything already handled
 }
 
 // ---------- a photo with a mask (and optional before/after preview) ----------

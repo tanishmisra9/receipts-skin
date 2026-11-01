@@ -41,4 +41,4 @@ $('addCart').addEventListener('click', () => { $('addNote').textContent = 'Demo 
   if (faces.some((x) => x.id === q.get('face'))) fid = q.get('face');
   $('faceSel').value = fid; render();
   reveal();
-})().catch(() => { $('rcVerdict').textContent = 'The saved scans could not be loaded.'; });
+})().catch(() => { $('rcVerdict').textContent = 'The saved scans could not be loaded.'; reveal(); });

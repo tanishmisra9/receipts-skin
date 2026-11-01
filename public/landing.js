@@ -88,7 +88,15 @@ function setPaused(p) {
   document.addEventListener('visibilitychange', tick);
   reduced.addEventListener('change', () => { setPaused(userPaused); });
   render(0, { animate: false });
-  equalize(); document.fonts?.ready.then(equalize);
+  // Measure the slip with the real fonts and wait for its photo, so the tape appears whole, never as an empty card first. Capped,
+  // so a slow link delays the page by 1.8 s at most.
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  await Promise.race([sleep(1800), (async () => {
+    equalize();
+    await Promise.race([document.fonts?.ready, sleep(1200)]);
+    equalize(); document.fonts?.ready.then(equalize); // (a late font load re-measures again)
+    await Promise.all([...$('slip').querySelectorAll('img')].map((i) => i.decode?.().catch(() => {})));
+  })()]);
   setPaused(reduced.matches); // under reduced motion it starts paused and stays manual
   reveal();
-})().catch(() => { $('slip').textContent = ''; });
+})().catch(() => { $('slip').textContent = ''; reveal(); });

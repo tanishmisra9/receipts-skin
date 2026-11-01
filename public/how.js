@@ -44,4 +44,4 @@ $('score').addEventListener('input', render);
   products = await (await fetch('/products.json')).json();
   render();
   reveal();
-})().catch(() => { $('ruleOut').textContent = ''; });
+})().catch(() => { $('ruleOut').textContent = ''; reveal(); });

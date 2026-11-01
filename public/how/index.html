@@ -18,6 +18,18 @@
     } catch (e) { document.documentElement.dataset.theme = 'light'; }
   })();
 </script>
+<script>
+  // Load-in: hide [data-reveal] blocks before first paint so nothing snaps in; reveal.js fades them in top down. Never hides without JS or
+  // under reduced motion, and a timer rescues the page if the module never starts.
+  (function () {
+    try {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var h = document.documentElement; h.classList.add('lo');
+      window.__lo = setTimeout(function () { h.classList.remove('lo'); }, 4000);
+      addEventListener('pageshow', function (e) { if (e.persisted) h.classList.remove('lo'); });
+    } catch (e) {}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -28,7 +40,7 @@
 
 <!--site-header-->
 <header class="site-header">
-  <div class="wrap bar">
+  <div class="wrap bar" data-reveal>
     <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
     <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a><a href="/evidence/">Evidence</a></nav>
     <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
@@ -39,7 +51,7 @@
 <main id="main" tabindex="-1" style="outline:none">
   <div class="wrap">
     <article class="how">
-      <header class="how-head">
+      <header class="how-head" data-reveal>
         <p class="kicker">How it works</p>
         <h1>How a verdict is decided.</h1>
         <p class="lede">Your score against two cut-offs. Nothing else.</p>
@@ -60,7 +72,7 @@
         </li>
       </ol>
 
-      <section class="rule" aria-labelledby="h-rule" data-reveal>
+      <section class="rule" aria-labelledby="h-rule" data-reveal data-wait>
         <div>
           <div class="rule-head">
             <div>
@@ -132,7 +144,7 @@
 
 <!--site-footer-->
 <footer>
-  <div class="wrap">
+  <div class="wrap" data-reveal>
     <span>Cosmetic guidance only, not medical advice. Product names are fictional.</span>
     <span>Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people.</span>
     <span>Built with the YouCam Skin Analysis and Skin Simulation APIs. <a href="/how/">How it works</a></span>

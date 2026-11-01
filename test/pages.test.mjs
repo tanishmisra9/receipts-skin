@@ -103,8 +103,8 @@ test('data-reveal never sits on .btn, .card or .sample (they own a hover transfo
   assert.deepEqual(bad, []);
 });
 
-test('scroll reveal: reveal.js does not run by itself; every page script that has data-reveal calls reveal() after rendering', () => {
-  assert.match(readFileSync(new URL('reveal.js', PUB), 'utf8'), /export function reveal\(/);
+test('scroll reveal: every page script that has data-reveal imports reveal.js and calls reveal() after rendering (it releases the data-wait blocks)', () => {
+  assert.match(readFileSync(new URL('reveal.js', PUB), 'utf8'), /export const reveal\b/);
   assert.ok(!readFileSync(new URL('site.js', PUB), 'utf8').includes('reveal.js'), 'site.js must not import reveal.js (it would run before content exists)');
   const script = { '/': 'landing.js', '/try/': 'try.js', '/how/': 'how.js', '/evidence/': 'evidence.js', '/store/': 'store.js' };
   for (const [url, f] of Object.entries(script)) {
@@ -120,4 +120,18 @@ test('landing "go on" links: one row of three links with no separator text; no p
   assert.ok(row, 'go-on row not found');
   assert.equal((row.match(/<a /g) || []).length, 3);
   assert.ok(!row.includes('·'));
+});
+
+test('load-in: every page hides its [data-reveal] blocks before first paint (inline lo script), starts from the header, and waits for fetched blocks', () => {
+  const css = readFileSync(new URL('styles.css', PUB), 'utf8');
+  assert.match(css, /\.lo \[data-reveal\]:not\(\.in\)/);
+  assert.ok(!/\.rv\b/.test(css), 'old .rv classes are gone');
+  assert.match(readFileSync(new URL('reveal.js', PUB), 'utf8'), /export const reveal/);
+  for (const [url, h] of Object.entries(html)) {
+    assert.match(h, /classList\.add\('lo'\)/, `${url} lacks the inline lo script`);
+    assert.ok(h.indexOf("classList.add('lo')") < h.indexOf('rel="stylesheet"'), `${url}: lo must be set before the stylesheet, so first paint is already hidden`);
+    assert.match(h, /<div class="wrap bar" data-reveal>/, `${url} header row is not revealed`);
+  }
+  for (const [url, wait] of Object.entries({ '/': 'class="tape" data-reveal data-wait', '/how/': 'data-reveal data-wait>', '/evidence/': 'data-reveal data-wait>', '/store/': 'data-reveal data-wait>' }))
+    assert.ok(html[url].includes(wait), `${url} fetched block is not marked data-wait`);
 });

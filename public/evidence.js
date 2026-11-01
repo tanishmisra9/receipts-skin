@@ -28,4 +28,4 @@ computeEvidence((p) => fetch(`/${p}`).then((r) => { if (!r.ok) throw new Error(p
     p.map((x) => [FACE[x.face], LABEL[x.concern], String(Math.round(x.before)), String(Math.round(x.after)), `${sign(x.delta)} (margin ${x.margin})`,
       x.call === 'improved' ? 'Delivers' : x.call === 'worse' ? 'Worse' : 'Not measurable']));
   reveal();
-}).catch(() => { $('flatSub').textContent = 'The saved scans could not be loaded.'; });
+}).catch(() => { $('flatSub').textContent = 'The saved scans could not be loaded.'; reveal(); });

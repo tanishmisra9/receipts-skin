@@ -18,6 +18,18 @@
     } catch (e) { document.documentElement.dataset.theme = 'light'; }
   })();
 </script>
+<script>
+  // Load-in: hide [data-reveal] blocks before first paint so nothing snaps in; reveal.js fades them in top down. Never hides without JS or
+  // under reduced motion, and a timer rescues the page if the module never starts.
+  (function () {
+    try {
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      var h = document.documentElement; h.classList.add('lo');
+      window.__lo = setTimeout(function () { h.classList.remove('lo'); }, 4000);
+      addEventListener('pageshow', function (e) { if (e.persisted) h.classList.remove('lo'); });
+    } catch (e) {}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -28,7 +40,7 @@
 
 <!--site-header-->
 <header class="site-header">
-  <div class="wrap bar">
+  <div class="wrap bar" data-reveal>
     <a class="logo" href="/" aria-label="Receipts home" data-logo></a>
     <nav class="nav" aria-label="Primary"><a href="/try/">Try it</a><a href="/how/">How it works</a><a href="/evidence/">Evidence</a></nav>
     <button class="icon-btn" id="themeBtn" type="button" aria-label="Switch to dark mode"><span class="i" id="iconMoon"></span><span class="i" id="iconSun"></span></button>
@@ -38,7 +50,7 @@
 
 <main id="main" tabindex="-1" style="outline:none">
   <div class="wrap">
-    <ol class="stepper" id="stepper" aria-label="Progress">
+    <ol class="stepper" data-reveal id="stepper" aria-label="Progress">
       <li data-step="choose"><span class="n">1</span><span class="t">Choose</span></li>
       <li data-step="analyze"><span class="n">2</span><span class="t">Analyze</span></li>
       <li data-step="results"><span class="n">3</span><span class="t">Your shelf</span></li>
@@ -47,9 +59,9 @@
 
     <!-- Step 1 -->
     <section id="step-choose" aria-labelledby="h-choose" hidden>
-      <h1 id="h-choose" tabindex="-1">Pick a face to start.</h1>
-      <p class="lede">Use a sample to see the whole thing in one tap, or scan your own face.</p>
-      <div class="choose">
+      <h1 id="h-choose" tabindex="-1" data-reveal>Pick a face to start.</h1>
+      <p class="lede" data-reveal>Use a sample to see the whole thing in one tap, or scan your own face.</p>
+      <div class="choose" data-reveal>
         <div class="panel" aria-labelledby="h-samples">
           <h2 id="h-samples">Sample faces</h2>
           <p class="sub">Already measured, so you see results straight away. No upload.</p>
@@ -83,9 +95,9 @@
 
     <!-- Step 2 -->
     <section id="step-analyze" aria-labelledby="h-analyze" hidden>
-      <h1 id="h-analyze" tabindex="-1">Reading your skin.</h1>
-      <p class="lede">This usually takes about 10 seconds.</p>
-      <div class="analyze">
+      <h1 id="h-analyze" tabindex="-1" data-reveal>Reading your skin.</h1>
+      <p class="lede" data-reveal>This usually takes about 10 seconds.</p>
+      <div class="analyze" data-reveal>
         <div class="photo scanning" id="anPhoto"><img id="anImg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Your photo, being analyzed"><div class="tag">Analyzing with YouCam…</div></div>
         <div>
           <ul class="stages" id="stages" aria-label="Progress">
@@ -107,7 +119,7 @@
 
     <!-- Step 3 -->
     <section id="step-results" aria-labelledby="h-results" hidden>
-      <div class="skin">
+      <div class="skin" data-reveal>
         <div class="skin-photo">
           <div class="photo" id="photo">
             <img id="photoImg" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="Face being analyzed">
@@ -153,7 +165,7 @@
 
 <!--site-footer-->
 <footer>
-  <div class="wrap">
+  <div class="wrap" data-reveal>
     <span>Cosmetic guidance only, not medical advice. Product names are fictional.</span>
     <span>Sample faces are free-license Unsplash photos by Hassan Khan, Jake Nackos and Imansyah Muhamad Putera. Scores demonstrate the API and are not a statement about these people.</span>
     <span>Built with the YouCam Skin Analysis and Skin Simulation APIs. <a href="/how/">How it works</a></span>
