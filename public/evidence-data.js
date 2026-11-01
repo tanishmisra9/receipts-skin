@@ -4,6 +4,7 @@ import { verdict, compareScans, SHOPPABLE } from './verdict.js';
 import { MARGINS } from './margins.js';
 
 export const FACES = ['s1', 's2', 's3'];
+export const EXTRA_FACES = ['t1', 't2', 't3', 't4', 't5']; // five more test-only portraits: a base scan and a darker copy, reported on their own
 export const TEST_FACES = ['h1', 'h2']; // test-only portraits: scored against their own unchanged scan, never shown as samples
 export const ORDINARY = ['dim', 'warm', 'tilt']; // the margin comes only from these, measured on s2
 export const STRESS = ['blur', 'crop', 'jpeg'];  // reported, never used for the margin
@@ -37,6 +38,15 @@ export async function computeEvidence(load) {
   const holdout = ordinary.filter((r) => r.face !== 's2');
   const close = FACES.map((f) => products.filter((p) => verdict(scans[f], p).verdict === 'close').length);
 
+  // 2b. Five more faces, darker photo only (never part of the figures above).
+  const extraRows = [];
+  for (const f of EXTRA_FACES) {
+    const b = (await load(`stability/${f}/base.json`)).concerns, alt = (await load(`stability/${f}/dim.json`)).concerns;
+    let n = 0, flagged = 0;
+    for (const p of products) if (verdict(b, p, raw).verdict !== verdict(alt, p, raw).verdict) { n++; flagged += verdict(b, p).verdict === 'close'; }
+    extraRows.push({ face: f, flips: n, flagged });
+  }
+
   // 3. Previews: what YouCam's analyzer measures on its own Skin Simulation images.
   const previews = [];
   const hasSim = new Set((await load('personas/index.json')).filter((x) => x.sim).map((x) => x.id));
@@ -52,5 +62,6 @@ export async function computeEvidence(load) {
     stability: { rows, ordinary: { flips: sum(ordinary, 'flips'), scans: ordinary.length, flagged: sum(ordinary, 'flagged'), comparisons: ordinary.length * products.length },
       holdout: { flips: sum(holdout, 'flips'), scans: holdout.length, flagged: sum(holdout, 'flagged'), faces: new Set(holdout.map((r) => r.face)).size, darkFlips: sum(holdout.filter((r) => r.variant === 'dim'), 'flips') }, close, margins: MARGINS, concerns: SHOPPABLE },
     previews,
+    extra: { faces: EXTRA_FACES.length, rows: extraRows, flips: sum(extraRows, 'flips'), flagged: sum(extraRows, 'flagged'), comparisons: EXTRA_FACES.length * products.length },
   };
 }

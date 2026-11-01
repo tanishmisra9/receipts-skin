@@ -16,6 +16,7 @@ http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const path = normalize(decodeURIComponent(url.pathname));
   if (path.includes('..')) return send(res, 400, 'Bad path');
+  if (path.startsWith('/api/') && url.searchParams.has('capacity')) return send(res, 200, '{}', 'application/json'); // no function here: the page leaves live controls enabled
   if (path.startsWith('/api/')) return send(res, 503, JSON.stringify({ message: 'Live scans are not available on the local server. Try a sample face.' }), 'application/json');
   let file = join(ROOT, path);
   const s = await stat(file).catch(() => null);

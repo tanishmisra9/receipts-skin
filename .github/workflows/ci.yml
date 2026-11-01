@@ -1,0 +1,12 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm test                       # verdict rule, cart parser, camera, API client and evidence figures
+      - run: python3 scripts/recheck.py     # independent Python re-derivation of every verdict; must match the app
+      - run: node scripts/contrast.mjs      # WCAG contrast, both themes

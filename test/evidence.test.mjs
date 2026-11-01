@@ -17,6 +17,10 @@ test('evidence: photo changes, band and holdout counts match scripts/margins.py'
   assert.deepEqual(e.stability.close, [3, 2, 1]);
 });
 
+test('evidence: five more faces, darker photo only, match scripts/margins.py and leave the figures above unchanged', () => {
+  assert.deepEqual({ faces: e.extra.faces, flips: e.extra.flips, flagged: e.extra.flagged, comparisons: e.extra.comparisons }, { faces: 5, flips: 4, flagged: 3, comparisons: 60 });
+});
+
 test('evidence: previews are re-measured, and pore previews do not move the measured score', () => {
   assert.equal(e.previews.length, 5);
   assert.deepEqual(e.previews.filter((p) => p.call === 'within noise').map((p) => `${p.face} ${p.concern}`).sort(), ['s2 pore', 's3 pore']);

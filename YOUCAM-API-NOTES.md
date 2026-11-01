@@ -15,7 +15,7 @@ A running log of facts about the YouCam API that we observed or verified while b
 - `POST /s2s/v2.0/file` returns a presigned URL; `PUT` the JPEG there; `POST /s2s/v2.0/task/skin-analysis` with `{src_file_id, dst_actions, format: "json"}`; poll `GET .../skin-analysis/{task_id}` until `task_status` is not `running`. A scan takes about 8 to 10 seconds. (measured)
 - SD actions: `wrinkle droopy_upper_eyelid droopy_lower_eyelid firmness acne moisture eye_bag dark_circle_v2 age_spot radiance redness oiliness pore texture tear_trough skin_type`. That is **15 concerns** plus skin type. Never mix SD and HD. (measured: every saved scan has 15 concern keys)
 - Only 12 of the 15 are shoppable. The three eyelid / tear-trough concerns are anatomy, not something a product fixes. (our choice)
-- The response also carries `skin_age` and a per-region `skin_type`. (measured)
+- The response also carries `skin_age` (shown on our results line as "YouCam's estimate", never used in a verdict) and a per-region `skin_type` (whole, T-zone, U-zone). (measured)
 - Each concern has `raw_score` (1-100, higher is healthier) and `ui_score`. The docs say `ui_score` is "adjusted to produce more favorable results". Scoring with `ui_score` instead of `raw_score` would change 8 of our 36 verdicts. (docs + measured)
 - Per-concern detection masks come back as `maskUrl` (our page reads `mask`, so the server maps one to the other). The URL expires in about 2 hours, so download masks right away if you need them. (measured)
 - Photo guidance: face over 60% of image width, even light, front-facing, short side at least 480 px, under 10 MB. (docs)
@@ -35,6 +35,19 @@ Variants of each face, made with `scripts/perturb.py` and scanned with `scripts/
 - **Ordinary photo changes flipped 7 of 180 verdicts** (15 scans x 12 products, 5 faces). The "too close to call" band flagged 4 of the 7 in advance.
 - **Holdout (4 faces never used for the margins: s1, s3, and test-only portraits h1, h2):** 6 flips in 12 photo changes, the band flagged 3. **All 6 flips came from the 25% darker photo**, 5 of them on the two dark-background portraits. So the band is conservative but not complete, and lighting is the dominant risk. (measured)
 - h1 and h2 are dramatically lit, dark-background portraits (Divine Effiong, Luke Southern, Unsplash), cropped so the face fills the frame: the uncropped photos failed with `error_src_face_too_small`, and a too-tight crop with `error_src_face_out_of_bound`. Those failures cost nothing. (measured)
+
+## Five more faces and live previews (Nov 1)
+- Five more test portraits (a base scan and a 25% darker copy each, 160 units): every scan returned all 15 concerns and a skin type. Shelf spread at baseline varied a lot (Match counts 2, 2, 8, 6, 4; Too close 2, 7, 2, 3, 1). The darker photo flipped 4 of 60 verdicts; the band flagged 3 of the 4. (measured)
+- Two of the five were first rejected by YouCam with `error_src_face_out_of_bound` (free): one face filled the whole frame, the other had its hair cut off at the top. Giving the face headroom (and shrinking the over-large face onto a soft background) fixed both. (measured)
+- **One scan failed transiently on its first try with an uncaught error and succeeded unchanged on a rerun.** We have no error body, so the cause is unconfirmed; the live endpoints now retry a 429 once and log the status and code of any failure. (measured)
+- **Skin Simulation has a stricter face-bounds check than Skin Analysis:** the dark low-key portrait scanned fine but its pore preview failed with "keep your whole face inside the frame" (free). The live preview surfaces that message. (measured, 1 case)
+- Skin Simulation through our endpoint took 3.5 to 6.6 seconds per preview, returned 1.4 to 2.1 MB images, and the download's content type was `binary/octet-stream` (an `<img>` still loads it). Six of seven previews succeeded, 4 units each, charged only on success. (measured)
+- Skin age returned by the API on these faces: 25, 32, 67, 84, 24. (measured; shown to users as YouCam's estimate, not used in any verdict)
+
+## Photo brightness does not predict stability
+- Centre-of-face mean brightness (0 to 255) of each base photo: Sample A 156, Sample B 181, Sample C 122, Test D 72, Test E 92. The 25% darker copies: Sample A 117, Sample C 91, Test D 53, Test E 68. (measured, from the saved photos)
+- The two dark-background test portraits are darker than the dimmed light-skinned samples, and were fine until dimmed. So no absolute brightness cut-off separates a safe photo from an unsafe one, and one would warn on well-lit darker skin. We therefore do not gate on brightness; the app answers lighting risk with "Too close" and a second photo. YouCam itself rejects very dark photos for free (`error_lighting_dark`). (derived)
+- Photo guidance from the docs: the face should fill over 60% of the image width. Our in-browser camera crops its capture to a centred 3:4 window and shows an oval at 66% of that width for this reason. (docs, our choice)
 
 ## Skin Analysis on Skin Simulation output
 - The analyzer accepts a Skin Simulation image as input and scores it normally. (measured)

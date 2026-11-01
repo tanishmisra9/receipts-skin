@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parseHaul, summarize, MAX_LINES, MAX_LEN } from '../public/haul.js';
+import { parseHaul, summarize, listNote, MAX_LINES, MAX_LEN } from '../public/haul.js';
 import { claimTargets } from '../public/verdict.js';
 
 const persona = (n) => JSON.parse(readFileSync(new URL(`../public/personas/${n}/scores.json`, import.meta.url))).concerns;
@@ -40,7 +40,7 @@ test('summary: only skipped prices count as kept; close and unmappable lines are
   assert.equal(s.unsure, 32);                        // unmappable $10 + close $22
 });
 
-test('limits: at most 15 lines of 200 characters, blank lines ignored, no input throws', () => {
+test('limits: at most 15 lines of 1500 characters, blank lines ignored, no input throws', () => {
   assert.equal(parseHaul(Array(40).fill('serum $5').join('\n')).length, MAX_LINES);
   assert.equal(parseHaul('x'.repeat(5000))[0].line.length, MAX_LEN);
   assert.deepEqual(parseHaul('\n   \n'), []);
@@ -53,4 +53,46 @@ test('every shelf product has a demo price, and every place that shows a shelf t
   const src = (f) => readFileSync(new URL(`../public/${f}`, import.meta.url), 'utf8');
   assert.match(src('try.js'), /keeps \$\{money\(.*\)\} \(demo prices\)/s);
   assert.match(src('try.js'), /Demo prices, made up for the demo\./);
+});
+
+const INCI = 'Aqua, Glycerin, Propanediol, Niacinamide, Zinc PCA, Sodium Hyaluronate, Panthenol, Squalane, Helianthus Annuus (Sunflower) Seed Oil, Tocopherol, Xanthan Gum, Phenoxyethanol, Ethylhexylglycerin, Citric Acid, Retinyl Palmitate';
+
+test('ingredient list: not cut at 200 characters, actives found with their position, claim words and "Seed Oil" never misfire', () => {
+  assert.ok(INCI.length > 200);
+  const [r] = parseHaul(`Night serum $42: ${INCI}`);
+  assert.equal(r.price, 42); assert.equal(r.name, 'Night serum');
+  assert.ok(r.line.includes('Retinyl Palmitate'));                        // past character 200: kept
+  assert.deepEqual(r.list.map((x) => [x.active, x.position]), [['Niacinamide', 4], ['Zinc PCA', 5], ['Sodium Hyaluronate', 6], ['Panthenol', 7], ['Retinyl Palmitate', 15]]);
+  assert.ok(r.targets.includes('pore') && r.targets.includes('moisture') && r.targets.includes('wrinkle'));
+  assert.equal(r.targets.includes('oiliness'), true);                     // from niacinamide and zinc PCA, named actives ...
+  assert.equal(parseHaul(INCI.replace('Niacinamide, ', '').replace('Zinc PCA, ', ''))[0].targets.includes('oiliness'), false); // ... never from "Seed Oil"
+});
+
+test('ingredient list: a late active still counts and reports where it sits; a list with no known active gives no verdict; short prose is not a list', () => {
+  assert.equal(parseHaul(INCI)[0].name, 'Ingredient list (15 ingredients)');
+  assert.equal(listNote(parseHaul(INCI)[0]).includes('Retinyl Palmitate (ingredient 15)'), true);
+  const none = summarize(parseHaul('Aqua, Glycerin, Propanediol, Squalane, Tocopherol, Xanthan Gum, Phenoxyethanol, Citric Acid'), persona('s1')).rows[0];
+  assert.equal(none.v.verdict, 'inconclusive'); assert.match(none.v.reason, /recognise/);
+  assert.equal(listNote(parseHaul('Aqua, Glycerin, Propanediol, Squalane, Tocopherol, Xanthan Gum, Phenoxyethanol, Citric Acid')[0]), null); // the reason already says it; no second sentence
+  const prose = parseHaul('Fades dark spots, evens tone, brightens, smooths')[0];
+  assert.equal(prose.list, undefined); assert.deepEqual(prose.targets.sort(), ['age_spot', 'radiance', 'texture']);
+  assert.equal(listNote(prose), null);
+});
+
+test('ingredient list: positions follow the label (1,2-Hexanediol is one item, brackets are not split), the label is not an ingredient, preservatives are not actives', () => {
+  const pos = (s) => Object.fromEntries(parseHaul(s)[0].list.map((x) => [x.active, x.position]));
+  assert.equal(pos('Aqua, Glycerin, Propanediol, 1,2-Hexanediol, Niacinamide, Panthenol, Tocopherol, Xanthan Gum').Niacinamide, 5);
+  assert.equal(pos('Aqua, Glycerin, Propanediol, Phenoxyethanol, Tocopherol, Xanthan Gum, Citric Acid, Retinol (Vitamin A)').Retinol, 8);
+  assert.equal(parseHaul('Aqua, Glycerin, Propanediol, Squalane, Tocopherol, Xanthan Gum, Citric Acid, Panthenol, Retinol (Vitamin A, Stabilised), Urea')[0].list.at(-1).position, 10);
+  const [a] = parseHaul('Retinol night serum $42: Aqua, Glycerin, Propanediol, Squalane, Tocopherol, Xanthan Gum, Phenoxyethanol, Citric Acid');
+  assert.equal(a.name, 'Retinol night serum'); assert.deepEqual(a.list, []); assert.deepEqual(a.targets, []); // retinol is in the name, not the list
+  const pres = parseHaul('Aqua, Glycerin, Propanediol, Squalane, Tocopherol, Xanthan Gum, Phenoxyethanol, Diazolidinyl Urea, Butylated Hydroxyanisole (BHA)')[0];
+  assert.deepEqual(pres.targets, []);                                      // a preservative and an antioxidant are not moisturiser or salicylic acid
+  assert.deepEqual(parseHaul('Aqua, Glycerin, Propanediol, Squalane, Tocopherol, Xanthan Gum, Phenoxyethanol, Urea')[0].targets, ['moisture']);
+});
+
+test('a long marketing line with several claims stays prose and keeps its claim words', () => {
+  const [r] = parseHaul('Glow serum $30 - fades dark spots, evens tone, brightens, smooths, hydrates, plumps, firms, soothes');
+  assert.equal(r.list, undefined);
+  for (const k of ['age_spot', 'moisture', 'firmness', 'redness', 'radiance']) assert.ok(r.targets.includes(k), k);
 });

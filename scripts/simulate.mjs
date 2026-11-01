@@ -2,13 +2,10 @@
 // and records it in sim.json. Usage: node --env-file=.env scripts/simulate.mjs <persona-id> <concern> [intensity]
 // Re-running an existing preview costs 0 units.
 import { readFile, writeFile, mkdir, access } from 'node:fs/promises';
+import { SIM_KEY } from '../lib/sim.js';
 
 const API = 'https://yce-api-01.makeupar.com';
 const KEY = process.env.YOUCAM_API_KEY;
-// Our concern keys -> Skin Simulation's names. Firmness and hydration are not simulatable.
-export const SIM_KEY = { wrinkle: 'wrinkle', radiance: 'radiance', oiliness: 'oiliness', acne: 'acne', eye_bag: 'eye_bags',
-  dark_circle_v2: 'dark_circle', age_spot: 'spots', pore: 'pores', texture: 'texture', redness: 'redness' };
-
 const [id, concern, intensity = '0.8'] = process.argv.slice(2);
 if (!KEY || !id || !SIM_KEY[concern]) throw new Error(`usage: node --env-file=.env scripts/simulate.mjs <id> <${Object.keys(SIM_KEY).join('|')}> [0-1]`);
 const dir = `public/personas/${id}`;

@@ -44,7 +44,7 @@ test('every internal link and asset resolves to a real file', () => {
 });
 
 test('module imports resolve (absolute paths, since pages sit at different depths)', () => {
-  for (const f of ['site.js', 'try.js', 'landing.js', 'receipt.js', 'how.js', 'evidence.js', 'evidence-data.js', 'store.js', 'haul.js', 'card.js']) {
+  for (const f of ['site.js', 'try.js', 'landing.js', 'receipt.js', 'how.js', 'evidence.js', 'evidence-data.js', 'store.js', 'haul.js', 'card.js', 'camera.js', 'sim.js']) {
     const src = readFileSync(new URL(f, PUB), 'utf8');
     for (const m of src.matchAll(/from '(\/[^']+)'/g)) assert.ok(existsSync(new URL(`.${m[1]}`, PUB)), `${f} imports missing ${m[1]}`);
   }
@@ -111,4 +111,13 @@ test('scroll reveal: reveal.js does not run by itself; every page script that ha
     assert.ok(html[url].includes('data-reveal'), `${url} has nothing to reveal`);
     assert.match(readFileSync(new URL(f, PUB), 'utf8'), /reveal\(/, `${f} never calls reveal()`);
   }
+});
+
+test('landing "go on" links: one row of three links with no separator text; no page uses the bare class "more" (the old store grid collided with it)', () => {
+  for (const [url, h] of Object.entries(html)) assert.ok(!/class="(?:[^"]*\s)?more(?:\s[^"]*)?"/.test(h), `${url} uses class "more"`);
+  assert.ok(!/\.more[\s{.,:]/.test(readFileSync(new URL('styles.css', PUB), 'utf8')), 'styles.css still defines .more');
+  const row = html['/'].match(/<p\b[^>]*class="[^"]*\bgo-on\b[^"]*"[^>]*>([\s\S]*?)<\/p>/)?.[1];
+  assert.ok(row, 'go-on row not found');
+  assert.equal((row.match(/<a /g) || []).length, 3);
+  assert.ok(!row.includes('·'));
 });

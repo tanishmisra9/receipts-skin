@@ -1,9 +1,11 @@
 import { verdict, combineScans, SHOPPABLE, LABEL, cut } from '/verdict.js';
-import { parseHaul, summarize, money } from '/haul.js';
+import { parseHaul, summarize, money, listNote } from '/haul.js';
 import { makeCard } from '/card.js';
 import { icon } from '/icons.js';
 import { esc, VERDICT, VICON, band, receiptHTML } from '/receipt.js';
 import { reveal } from '/reveal.js';
+import { captureSelfie, cameraSupported, cameraError } from '/camera.js';
+import { SIM_CONCERNS } from '/sim.js';
 
 const $ = (id) => document.getElementById(id);
 const root = document.documentElement;
@@ -81,7 +83,7 @@ function makeView(box, { img, maskEl, tag, sim, line, cmp, toggle }) {
   return {
     set(src, alt) { img.src = src; img.alt = alt; },
     show(concern, text) { mask = concern ? { concern, text } : null; mode = 'measured'; draw(); },
-    setSim(src) { simSrc = src || null; mode = 'measured'; draw(); },
+    setSim(src, show = false) { simSrc = src || null; mode = show && simSrc ? 'preview' : 'measured'; draw(); },
     clear() { mask = null; simSrc = null; mode = 'measured'; draw(); },
   };
 }
@@ -139,7 +141,7 @@ function renderResults() {
   $('resKicker').textContent = current.label;
   $('h-results').textContent = `${worth} of ${r.length} products are worth your money.`;
   const st = current.skin_type?.whole;
-  $('meta').textContent = [`${n('skip')} ${n('skip') === 1 ? 'is a Skip' : 'are a Skip'}`, n('skip') && `skipping them keeps ${money(r.filter((x) => x.v.verdict === 'skip').reduce((s, x) => s + (x.p.price ?? 0), 0))} (demo prices)`, n('close') && `${n('close')} too close to call`, st && `${cap(st.toLowerCase())} skin`, current.skin_age && `skin age ${current.skin_age}`, current.photos > 1 && `${current.photos} photos averaged`, current.maskNote].filter(Boolean).join(' · ');
+  $('meta').textContent = [`${n('skip')} ${n('skip') === 1 ? 'is a Skip' : 'are a Skip'}`, n('skip') && `skipping them keeps ${money(r.filter((x) => x.v.verdict === 'skip').reduce((s, x) => s + (x.p.price ?? 0), 0))} (demo prices)`, n('close') && `${n('close')} too close to call`, st && `${cap(st.toLowerCase())} skin`, current.skin_age && `skin age ${current.skin_age} (YouCam's estimate)`, current.photos > 1 && `${current.photos} photos averaged`, current.maskNote].filter(Boolean).join(' · ');
   root.style.setProperty('--ar', String(currentAr));
   mainView.set(photoSrc, `Face being analyzed (${current.label})`);
   filter = 'all'; flatter = false; syncFlatter();
@@ -156,12 +158,45 @@ const pageParts = () => [$('main'), document.querySelector('.site-header'), docu
 const isOpen = () => $('overlay').dataset.open === 'true';
 const visibleIds = () => [...$('shelfGrid').querySelectorAll('.card')].map((c) => c.dataset.id);
 
+// ---------- live preview: Skin Simulation on the photo you scanned (4 units each; saved samples already have theirs) ----------
+let livePreviews = {}, ovConcern = null, previewing = false;
+function syncLiveSim(p) {
+  const ask = activeId === '__me' && ovConcern && SIM_CONCERNS.includes(ovConcern) && !livePreviews[ovConcern] && verdict(current.concerns, p).verdict !== 'skip';
+  $('liveSim').hidden = !ask;
+  $('liveSimBtn').disabled = previewing;
+  $('liveSimNote').textContent = ask ? `Predicted, not re-measured, and not a promise. Sends your photo to YouCam again; the link lasts about 2 hours.${ovConcern === 'pore' ? ' In our tests, pore previews did not change the score YouCam measures.' : ''}` : '';
+}
+async function livePreview() {
+  const concern = ovConcern, mine = current;
+  if (!concern || previewing) return;
+  previewing = true; $('liveSimBtn').disabled = true; $('liveSimNote').textContent = 'Asking YouCam for a predicted result. About 10 seconds.';
+  try {
+    const r = await fetch(`/api/simulate?concern=${concern}`, { method: 'POST', body: await (await fetch(photoSrc)).blob() });
+    const j = await r.json();
+    if (!j.task) throw new Error(j.message);
+    for (let i = 0; i < 30; i++) {
+      await new Promise((res) => setTimeout(res, 2500));
+      const o = await (await fetch(`/api/simulate?task=${j.task}`)).json();
+      if (o.status === 'running') continue;
+      if (o.status !== 'success') throw new Error(o.message);
+      if (current === mine) { livePreviews[concern] = o.url; if (isOpen() && ovConcern === concern) { ovView.setSim(o.url, true); $('liveSim').hidden = true; } }
+      return;
+    }
+    throw new Error('That took too long. Please try again.');
+  } catch (e) {
+    if (current === mine && ovConcern === concern) $('liveSimNote').textContent = e.message || 'The preview did not work. Please try again.';
+  } finally { previewing = false; $('liveSimBtn').disabled = false; }
+}
+$('liveSimBtn').addEventListener('click', livePreview);
+
 function fillOverlay(p, title) {
   const { html, e0 } = receiptHTML(current.concerns, current.label, p, title, current.simScores, rescanText());
   $('ovReceipt').innerHTML = html;
   root.style.setProperty('--ar', String(currentAr));
   ovView.set(photoSrc, e0 ? `${current.label}, ${LABEL[e0.concern]}` : current.label);
-  ovView.setSim(e0 && current.sim?.[e0.concern]);
+  ovConcern = e0?.concern ?? null;
+  ovView.setSim(e0 && (current.sim?.[e0.concern] ?? livePreviews[e0.concern]));
+  syncLiveSim(p);
   ovView.show(e0?.concern, e0 ? `${LABEL[e0.concern]} ${Math.round(e0.raw)}/100` : '');
   const ids = visibleIds(), i = ids.indexOf(p.id);
   $('ovNav').hidden = i < 0;
@@ -247,7 +282,7 @@ $('ovReceipt').addEventListener('click', async (e) => {
 $('rescanFile').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startScan(f, rescanBase); else rescanBase = null; });
 
 // ---------- paste your cart ----------
-const CART_EXAMPLE = 'Niacinamide 10% serum $6\nHydrating gel cream $24\nBrightening vitamin C serum $38\nPore clay mask $22';
+const CART_EXAMPLE = 'Niacinamide 10% serum $6\nHydrating gel cream $24\nBrightening vitamin C serum $38\nPore clay mask $22\nNight serum $42: Aqua, Glycerin, Propanediol, Niacinamide, Zinc PCA, Sodium Hyaluronate, Panthenol, Squalane, Tocopherol, Retinyl Palmitate, Phenoxyethanol';
 let cart = null;
 function renderCart() {
   const text = $('cart').value.trim();
@@ -258,7 +293,7 @@ function renderCart() {
     : `<div class="cart-total"><span>Nothing here to skip for this face</span></div>`;
   const rows = cart.rows.map((r, i) => `<button class="cart-row" data-i="${i}" type="button">
     <span class="badge b-${r.v.verdict}">${icon(VICON[r.v.verdict], 14)}${VERDICT[r.v.verdict]}</span><span class="name">${esc(r.name)}</span><span class="num">${r.price === null ? '' : money(r.price)}</span>
-    <span class="why">${esc(r.v.reason)}</span></button>`).join('');
+    <span class="why">${esc(r.v.reason)}${listNote(r) ? ` ${esc(listNote(r))}` : ''}</span></button>`).join('');
   $('cartOut').innerHTML = `${rows}${total}<p class="cart-note">Prices are what you typed; items marked Too close or Unclear are not counted. We match label claims and ingredient names. That says nothing about whether a product works.</p>`;
   $('cartOut').querySelectorAll('.cart-row').forEach((b) => b.addEventListener('click', () => { const r = cart.rows[b.dataset.i]; openReceipt({ id: r.id, name: r.name, targets: r.targets }, b, r.name); }));
 }
@@ -284,7 +319,7 @@ $('cartExample').addEventListener('click', () => { $('cart').value = CART_EXAMPL
 
 // ---------- loading faces ----------
 function load(data, src, label, ar, id) {
-  current = { ...data, label }; photoSrc = src; currentAr = ar; activeId = id;
+  current = { ...data, label }; photoSrc = src; currentAr = ar; activeId = id; livePreviews = {};
   renderResults();
 }
 async function loadPersona(id) {
@@ -343,6 +378,7 @@ function stopTimer() { clearInterval(timerId); timerId = null; }
 
 async function startScan(file, base = null) {
   if (scanning) return;
+  camCtl?.abort(); // a camera still waiting on its permission prompt must not open behind the analyze step
   if (!file.type.startsWith('image/')) { status('That file is not an image. Try a JPG or PNG.', true); return; }
   status('');
   scanning = true; abortCtl = new AbortController();
@@ -386,6 +422,26 @@ $('cancelBtn').addEventListener('click', () => { cancelScan(); history.back(); }
 $('retryBtn').addEventListener('click', () => { history.replaceState(null, '', location.pathname); showChoose(); $('file').click(); });
 
 $('file').addEventListener('change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) startScan(f); });
+// Camera: shown only where the browser can open one (a phone's file chooser already offers its camera).
+let camCtl = null;
+if (cameraSupported()) $('camBtn').hidden = false;
+function camUI(open) { $('cam').hidden = !open; $('drop').hidden = open; $('camBtn').hidden = open || !cameraSupported(); }
+$('camBtn').addEventListener('click', async () => {
+  if (scanning || camCtl) return;
+  status(''); camCtl = new AbortController();
+  let file = null;
+  try {
+    file = await captureSelfie({ video: $('camVideo'), count: $('camCount'), shoot: $('camShoot'), cancel: $('camCancel'), signal: camCtl.signal, onReady: () => { camUI(true); $('cam').scrollIntoView({ block: 'center' }); $('camShoot').focus({ preventScroll: true }); } });
+  } catch (e) { status(cameraError(e), true); }
+  camCtl = null; camUI(false);
+  if (file) startScan(file);
+});
+// Say "paused" before an upload, not after. A failing check (no API, as on the static dev server) leaves everything enabled.
+fetch('/api/scan?capacity=1').then((r) => r.json()).then((j) => {
+  if (j.live !== false) return;
+  $('file').disabled = true; $('camBtn').disabled = true; $('drop').classList.add('paused');
+  $('pausedNote').hidden = false;
+}).catch(() => {});
 const drop = $('drop');
 ['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('over'); }));
 ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
@@ -395,6 +451,7 @@ drop.addEventListener('drop', (e) => { const f = e.dataTransfer?.files?.[0]; if 
 // ---------- routing: the URL is the state ----------
 function showChoose(msg) { showStep('choose'); status(msg || '', !!msg); }
 async function route() {
+  camCtl?.abort(); // leaving the page state (Back, a link) must turn the camera off
   const q = new URLSearchParams(location.search);
   const face = q.get('face'), scan = q.get('scan'), p = q.get('p');
   if (face) {

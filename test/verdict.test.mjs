@@ -117,3 +117,10 @@ test('combineScans: averages raw, keeps the same margin, can resolve a close ver
   assert.equal(verdict(combineScans(a, nearer).concerns, p).verdict, 'close'); // still too close
   assert.equal(combineScans(m, farther).photos, 3);
 });
+
+test('the rule reads only { concern: { raw } }: plain hand-made scores work with no vendor fields, and a missing score is Unclear', () => {
+  const p = { id: 'x', name: 'x', targets: ['pore'] };
+  assert.equal(verdict({ pore: { raw: 30 } }, p).verdict, 'match');
+  assert.equal(verdict({ pore: { raw: 99 } }, p).verdict, 'skip');
+  assert.equal(verdict({}, p).verdict, 'inconclusive');
+});
