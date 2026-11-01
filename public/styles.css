@@ -267,7 +267,7 @@ footer a { color: var(--ink); text-underline-offset: 3px; }
 .photo.sweep .cmp-line { transition: left .9s var(--ease-expo); }
 
 /* Scroll reveal (reveal.js adds .rv only to things below the fold). Never put data-reveal on .btn, .card or .sample: they own a hover transform. */
-.rv { opacity: 0; filter: blur(10px); transform: translateY(10px); }
+.rv { opacity: 0; filter: blur(6px); transform: translateY(10px); }
 .rv.in { opacity: 1; filter: none; transform: none; transition: opacity .7s var(--ease-expo), filter .7s var(--ease-expo), transform .7s var(--ease-expo); }
 
 @media (prefers-reduced-motion: reduce) {
@@ -388,7 +388,7 @@ footer a { color: var(--ink); text-underline-offset: 3px; }
 .rc-head { display: flex; justify-content: space-between; align-items: center; gap: var(--s-3); flex-wrap: wrap; } .rc-head h2 { margin: 0; font-size: 1.05rem; }
 .rc-face { font: 400 .75rem var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; gap: var(--s-2); }
 .rc-face select { min-height: 40px; padding: 6px 10px; border: 1.5px solid var(--ink); border-radius: var(--r-paper); background: var(--surface); color: var(--ink); font: 400 .9rem var(--font-sans); }
-.rc-verdict { display: grid; gap: var(--s-2); justify-items: start; } .rc-verdict p { margin: 0; } .rc-why summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 500; }
+.rc-verdict { display: grid; gap: var(--s-2); justify-items: start; min-height: 60px; } .rc-verdict p { margin: 0; } .rc-why summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 500; }
 .pdp-buy { margin-top: var(--s-2); display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; } .more { margin-top: var(--s-7); display: grid; gap: var(--s-3); }
 @media (min-width: 900px) { .pdp { grid-template-columns: minmax(0, 360px) minmax(0, 1fr); } .pdp-img { max-width: 360px; padding: var(--s-6); } }
 
@@ -401,3 +401,8 @@ footer a { color: var(--ink); text-underline-offset: 3px; }
 .margins li { display: flex; justify-content: space-between; gap: var(--s-2); border-bottom: 1px solid var(--line); padding: var(--s-1) 0; font-size: .9rem; }
 .plain { margin: 0; padding-left: 1.2em; display: grid; gap: var(--s-2); max-width: 62ch; }
 .receipt .rescan { margin-top: var(--s-3); display: grid; gap: var(--s-2); justify-items: start; } .receipt .rescan p { margin: 0; font-size: .8rem; color: var(--muted); }
+/* Reserve (a little less than) the filled height of the late-rendered grid so the footer does not jump when it fills. */
+.more .shelf { min-height: 1900px; }
+@media (min-width: 560px) { .more .shelf { min-height: 0; } }
+@media (min-width: 1000px) { .more .shelf { min-height: 700px; } }
+.pdp-info .lede { min-height: 1.6em; } .price { min-height: 1.5em; }

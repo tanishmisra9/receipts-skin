@@ -102,3 +102,13 @@ test('data-reveal never sits on .btn, .card or .sample (they own a hover transfo
     for (const m of h.matchAll(/<[a-z0-9]+\s[^>]*data-reveal[^>]*>/g)) if (/class="[^"]*\b(btn|card|sample)\b/.test(m[0])) bad.push(`${url} ${m[0]}`);
   assert.deepEqual(bad, []);
 });
+
+test('scroll reveal: reveal.js does not run by itself; every page script that has data-reveal calls reveal() after rendering', () => {
+  assert.match(readFileSync(new URL('reveal.js', PUB), 'utf8'), /export function reveal\(/);
+  assert.ok(!readFileSync(new URL('site.js', PUB), 'utf8').includes('reveal.js'), 'site.js must not import reveal.js (it would run before content exists)');
+  const script = { '/': 'landing.js', '/try/': 'try.js', '/how/': 'how.js', '/evidence/': 'evidence.js', '/store/': 'store.js' };
+  for (const [url, f] of Object.entries(script)) {
+    assert.ok(html[url].includes('data-reveal'), `${url} has nothing to reveal`);
+    assert.match(readFileSync(new URL(f, PUB), 'utf8'), /reveal\(/, `${f} never calls reveal()`);
+  }
+});

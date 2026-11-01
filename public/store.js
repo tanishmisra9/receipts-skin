@@ -3,6 +3,7 @@
 import { verdict } from '/verdict.js';
 import { receiptHTML, esc, VERDICT, VICON } from '/receipt.js';
 import { icon } from '/icons.js';
+import { reveal } from '/reveal.js';
 
 const $ = (id) => document.getElementById(id);
 const fetchJSON = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(u); return r.json(); };
@@ -39,4 +40,5 @@ $('addCart').addEventListener('click', () => { $('addNote').textContent = 'Demo 
   if (products.some((x) => x.id === q.get('p'))) pid = q.get('p');
   if (faces.some((x) => x.id === q.get('face'))) fid = q.get('face');
   $('faceSel').value = fid; render();
+  reveal();
 })().catch(() => { $('rcVerdict').textContent = 'The saved scans could not be loaded.'; });

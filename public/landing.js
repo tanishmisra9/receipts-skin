@@ -2,6 +2,7 @@
 import { verdict, LABEL } from '/verdict.js';
 import { icon } from '/icons.js';
 import { esc, receiptHTML } from '/receipt.js';
+import { reveal } from '/reveal.js';
 
 const $ = (id) => document.getElementById(id);
 const fetchJSON = async (u) => { const r = await fetch(u); if (!r.ok) throw new Error(u); return r.json(); };
@@ -62,7 +63,8 @@ function equalize() {
   slip.style.minHeight = `${max}px`;
   render(keep, { animate: false });
 }
-let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(equalize, 150); });
+// Width only: on phones the address bar sliding away fires resize (height only) mid-scroll, and re-rendering then makes the page jump.
+let rz, lastW = innerWidth; addEventListener('resize', () => { if (innerWidth === lastW) return; lastW = innerWidth; clearTimeout(rz); rz = setTimeout(equalize, 150); });
 
 function tick() { clearTimeout(timer); if (userPaused || hovering || reduced.matches || document.hidden) return; timer = setTimeout(() => { render(i + 1); tick(); }, 5200); }
 function setPaused(p) {
@@ -88,4 +90,5 @@ function setPaused(p) {
   render(0, { animate: false });
   equalize(); document.fonts?.ready.then(equalize);
   setPaused(reduced.matches); // under reduced motion it starts paused and stays manual
+  reveal();
 })().catch(() => { $('slip').textContent = ''; });

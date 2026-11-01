@@ -2,6 +2,7 @@
 import { computeEvidence } from '/evidence-data.js';
 import { LABEL } from '/verdict.js';
 import { VERDICT, esc } from '/receipt.js';
+import { reveal } from '/reveal.js';
 
 const $ = (id) => document.getElementById(id);
 const FACE = { s1: 'Sample A', s2: 'Sample B', s3: 'Sample C', h1: 'Test D', h2: 'Test E' };
@@ -26,4 +27,5 @@ computeEvidence((p) => fetch(`/${p}`).then((r) => { if (!r.ok) throw new Error(p
   $('prevTable').innerHTML = table(['Face', 'Concern', 'Before', 'Preview, measured', 'Change', 'Verdict on the preview'],
     p.map((x) => [FACE[x.face], LABEL[x.concern], String(Math.round(x.before)), String(Math.round(x.after)), `${sign(x.delta)} (margin ${x.margin})`,
       x.call === 'improved' ? 'Delivers' : x.call === 'worse' ? 'Worse' : 'Not measurable']));
+  reveal();
 }).catch(() => { $('flatSub').textContent = 'The saved scans could not be loaded.'; });

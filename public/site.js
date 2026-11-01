@@ -1,6 +1,5 @@
 // Shared by every page: logo, theme toggle, current-page nav state.
 import { icon, logoMark } from '/icons.js';
-import '/reveal.js';
 
 const root = document.documentElement;
 const $ = (id) => document.getElementById(id);

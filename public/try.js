@@ -3,6 +3,7 @@ import { parseHaul, summarize, money } from '/haul.js';
 import { makeCard } from '/card.js';
 import { icon } from '/icons.js';
 import { esc, VERDICT, VICON, band, receiptHTML } from '/receipt.js';
+import { reveal } from '/reveal.js';
 
 const $ = (id) => document.getElementById(id);
 const root = document.documentElement;
@@ -41,6 +42,7 @@ function showStep(name, { focus = true } = {}) {
   });
   document.title = TITLES[name];
   if (focus) { window.scrollTo(0, 0); $(`h-${name}`).focus({ preventScroll: true }); }
+  if (name === 'results') reveal($('step-results')); // below-the-fold shelf, cart box; skips what is already marked
 }
 
 // ---------- a photo with a mask (and optional before/after preview) ----------

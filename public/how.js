@@ -3,6 +3,7 @@ import { verdict, cut } from '/verdict.js';
 import { MARGINS } from '/margins.js';
 import { icon } from '/icons.js';
 import { VERDICT, VICON, receiptHTML } from '/receipt.js';
+import { reveal } from '/reveal.js';
 
 const $ = (id) => document.getElementById(id);
 const NAMES = { eye_bag: 'Eye bags', moisture: 'Hydration', pore: 'Pores' };
@@ -42,4 +43,5 @@ $('score').addEventListener('input', render);
 (async () => {
   products = await (await fetch('/products.json')).json();
   render();
+  reveal();
 })().catch(() => { $('ruleOut').textContent = ''; });
