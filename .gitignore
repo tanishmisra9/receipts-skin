@@ -9,3 +9,6 @@ public/personas/local/
 NOTES.md
 .DS_Store
 stability-src/
+
+# demo videos and tooling (large, local only)
+demo/
