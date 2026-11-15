@@ -1,6 +1,6 @@
 # Receipts
 
-[![CI](https://github.com/tanishmisra9/receipts-skin/actions/workflows/ci.yml/badge.svg)](https://github.com/tanishmisra9/receipts-skin/actions/workflows/ci.yml)
+[![CI](https://github.com/tanishmisra9/receipts-skin/actions/workflows/ci.yml/badge.svg)](https://github.com/tanishmisra9/receipts-skin/actions/workflows/ci.yml) ![License: MIT](https://img.shields.io/badge/license-MIT-blue) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=black) [![Live](https://img.shields.io/badge/live-receipts--skin.vercel.app-2ea44f)](https://receipts-skin.vercel.app)
 
 **Skincare advice that's allowed to say no.**
 
