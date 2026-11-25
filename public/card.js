@@ -43,6 +43,6 @@ export async function makeCard({ label, rows, keep, skipCount, note }) {
   mono(700, 30); x.fillStyle = INK; x.fillText(skipCount ? `SKIP ${skipCount}, YOU KEEP` : 'NOTHING TO SKIP', 110, 1075);
   if (skipCount) { mono(700, 96); x.fillStyle = COLOR.match; x.textAlign = 'right'; x.fillText(money(keep), W - 110, 1190); x.textAlign = 'left'; }
   sans(400, 26); x.fillStyle = MUTED; x.fillText(note, 110, 1130);
-  mono(400, 24); x.fillText('receipts-skin.vercel.app', 110, 1255);
+  mono(400, 24); x.fillText('Receipts', 110, 1255);
   return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('Could not make the image.'))), 'image/png'));
 }

@@ -6,11 +6,11 @@
 
 A recommendation that can't say no isn't advice. Receipts measures your skin once with the YouCam Skin Analysis API, then gives every product on a shelf a **Match**, **Partial** or **Skip**, with your own scores as the receipt.
 
-Live demo: https://receipts-skin.vercel.app (sample faces work with no sign-in; "Scan my face" runs a real YouCam scan)
+The hosted demo has been taken down. Run it locally (see "Run it" below); sample faces work with no API key.
 
 Built for the YouCam API Skin AI & eCommerce VTO Hackathon (Skin AI topic).
 
-**What makes it more than a wrapper:** we measured how far to trust YouCam's numbers (see [Evidence](https://receipts-skin.vercel.app/evidence/) and [YOUCAM-API-NOTES.md](YOUCAM-API-NOTES.md)). The rule says "too close to call" when a score sits within the photo-noise margin of a cut-off, and we re-measured YouCam's own previews with its own analyzer.
+**What makes it more than a wrapper:** we measured how far to trust YouCam's numbers (see the Evidence section below and [YOUCAM-API-NOTES.md](YOUCAM-API-NOTES.md)). The rule says "too close to call" when a score sits within the photo-noise margin of a cut-off, and we re-measured YouCam's own previews with its own analyzer.
 
 ## Pages
 
@@ -99,7 +99,7 @@ Sample face photos from Unsplash: Hassan Khan, Jake Nackos and Imansyah Muhamad 
 
 - `npm test`: planted-score tests (one weak concern matches only its product, perfect skin skips everything, missing scores are Unclear) plus real-scan checks. We also broke the comparison on purpose to confirm the tests go red.
 - `npm run recheck`: a separate Python implementation, written from the rules above, recomputes every face x product verdict (including the too-close band, with margins it derives itself from the raw scans) and compares it with the app's JavaScript output. Result: 36 of 36 agree; the three faces get three different shelves (Match/Partial/Skip/Too close counts of 0/0/9/3, 0/3/7/2 and 1/2/8/1).
-- **Stability** (`/evidence/`, `scripts/margins.py`): 21 extra scans of 5 faces under photo changes (two faces are test-only portraits that are never shown). Ordinary changes (darker, warm light, tilt) flipped 7 of 180 verdicts and the band flagged 4 of them in advance. On the 4 faces it was not fitted to, 6 verdicts flipped in 12 photo changes, it flagged 3, and all 6 came from the 25% darker photo. Blur flipped 5 of 12 on Sample B.
+- **Stability** (`/evidence/` page when run locally, `scripts/margins.py`): 21 extra scans of 5 faces under photo changes (two faces are test-only portraits that are never shown). Ordinary changes (darker, warm light, tilt) flipped 7 of 180 verdicts and the band flagged 4 of them in advance. On the 4 faces it was not fitted to, 6 verdicts flipped in 12 photo changes, it flagged 3, and all 6 came from the 25% darker photo. Blur flipped 5 of 12 on Sample B.
 - **Five more test portraits** (`stability/t1` to `t5`): scanned once and once darker (10 scans, all 15 concerns returned on every one). The darker photo flipped 4 of 60 verdicts and the band flagged 3 of those 4. Reported on their own; no figure above uses them.
 - **Previews measured by YouCam itself:** 3 of 5 Skin Simulation previews show a change its analyzer can measure (eye bags +17.7, dark circles +8.9, oiliness +18.4). Both pore previews do not (+1.7, -1.4).
 
